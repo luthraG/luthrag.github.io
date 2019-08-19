@@ -35,7 +35,7 @@ class App extends Component {
             <h3 className="h2">
               About Gaurav
             </h3>
-            <p className="text-xxl">Having keen interest in Mathematics from my childhood, I inclinced towards computer programming at very young age. I was born in Bhiwani, India and got my Bachelor's degree from there as well.</p>
+            <p className="text-xxl">Having keen interest in Mathematics from my childhood, I inclined towards computer programming at very young age. I was born in Bhiwani, India and got my Bachelor's degree from there as well.</p>
             <p className="text-xxl">During my Bachelor's in Computer Science, I published many research papers on computer security. I have invented the technology for video synchronization based on audio cue and patented that technology. I am also strong believer of open source and published many open source modules which have more than 150K downloads.</p>
             < p className="text-xxl">I wonder what's next...</p>
             <hr className="separator" />
