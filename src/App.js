@@ -28,7 +28,7 @@ class App extends Component {
         <img src={profile} className="profile-pic" alt="Gaurav Luthra" />
           <h1>Gaurav Luthra</h1>
           <h3>Software Architect</h3>
-          <h5>Computer Scientist</h5>
+          <h5>Lead Computer Scientist</h5>
         </div>
         <section id="about" className="mast mast-teal">
           <div className="colored-container">
