@@ -138,6 +138,9 @@ class SkillGraph extends Component {
           renderTo: 'skill-graph',
           backgroundColor: 'rgba(255, 255, 255, 0.0)'
       },
+      credits: {
+        enabled: false
+      },
       title: {
           text: ''
       },
