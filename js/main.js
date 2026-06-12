@@ -69,8 +69,8 @@
   const termLines = [
     ['t-cmd', '$ whoami --verbose'],
     ['', ''],
-    ['t-key', 'role      ', 't-str', '"Distinguished Engineer @ Zippia"'],
     ['t-key', 'founder   ', 't-str', '"Yuvanya Systems"'],
+    ['t-key', 'role      ', 't-str', '"Distinguished Engineer @ Zippia"'],
     ['t-key', 'oss       ', 't-str', '"CubeAPM — anomaly detection, profiler, CQL"'],
     ['t-key', 'stack     ', 't-str', '[py, go, node, k8s, es, llm]'],
     ['t-key', 'uptime    ', 't-str', '15y+'],
