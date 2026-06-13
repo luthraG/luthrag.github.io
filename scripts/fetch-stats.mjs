@@ -192,11 +192,16 @@ const stats = {
   prTotals: { years: YEARS, count: prCount, additions: prAdditions, deletions: prDeletions },
 };
 
-// Repo-scoped tokens (e.g. the default Actions GITHUB_TOKEN) silently return
-// zeros for user contribution queries — refuse to overwrite good data with that.
-if (stats.totals12mo.contributions < 10 || monthly.every((m) => m.commits === 0)) {
+// Tokens with missing scopes silently return zeros instead of erroring:
+// the default Actions GITHUB_TOKEN zeroes user contribution queries, and a
+// PAT without public_repo zeroes the PR search. Refuse to overwrite good data.
+if (
+  stats.totals12mo.contributions < 10 ||
+  monthly.every((m) => m.commits === 0) ||
+  prCount === 0
+) {
   console.error(
-    "Sanity check failed: stats look empty (token likely lacks user-data access). Not writing."
+    "Sanity check failed: stats look empty (token likely lacks read:user and/or public_repo scope). Not writing."
   );
   process.exit(1);
 }
