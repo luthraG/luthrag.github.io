@@ -11,6 +11,14 @@ if (!TOKEN) {
   process.exit(1);
 }
 
+// Log token scopes up front - missing scopes make GitHub return zeros, not errors.
+{
+  const res = await fetch("https://api.github.com/user", {
+    headers: { Authorization: `bearer ${TOKEN}`, "User-Agent": "luthrag-portfolio-stats" },
+  });
+  console.error(`token scopes: ${res.headers.get("x-oauth-scopes") || "(none reported)"}`);
+}
+
 async function gql(query, variables = {}) {
   const res = await fetch("https://api.github.com/graphql", {
     method: "POST",
@@ -201,7 +209,8 @@ if (
   prCount === 0
 ) {
   console.error(
-    "Sanity check failed: stats look empty (token likely lacks read:user and/or public_repo scope). Not writing."
+    `Sanity check failed: contributions=${stats.totals12mo.contributions} prCount=${prCount} ` +
+      "(token likely lacks read:user and/or public_repo scope). Not writing."
   );
   process.exit(1);
 }
