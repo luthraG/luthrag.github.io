@@ -152,36 +152,38 @@ const languages = [...langBytes.entries()]
   .map(([name, size]) => ({ name, size, color: langColors.get(name) || "#8b98a5" }));
 
 // ---- Lines changed: additions/deletions across PRs authored in last 10 years ----
-// Chunked by year because the search API caps any single query at 1000 results.
+// Uses the user.pullRequests connection rather than the search API: search
+// silently returns zero results for tokens without the full repo scope.
 let prAdditions = 0;
 let prDeletions = 0;
 let prCount = 0;
-for (let y = 0; y < YEARS; y++) {
-  const from = new Date(Date.UTC(now.getUTCFullYear() - y - 1, now.getUTCMonth(), now.getUTCDate()));
-  const to = new Date(Date.UTC(now.getUTCFullYear() - y, now.getUTCMonth(), now.getUTCDate()));
-  const range = `${from.toISOString().slice(0, 10)}..${to.toISOString().slice(0, 10)}`;
-  let prCursor = null;
-  do {
-    const data = await gql(
-      `query($q: String!, $cursor: String) {
-        search(type: ISSUE, query: $q, first: 100, after: $cursor) {
-          issueCount
+const prCutoff = new Date(Date.UTC(now.getUTCFullYear() - YEARS, now.getUTCMonth(), now.getUTCDate()));
+let prCursor = null;
+do {
+  const data = await gql(
+    `query($login: String!, $cursor: String) {
+      user(login: $login) {
+        pullRequests(first: 100, after: $cursor, orderBy: { field: CREATED_AT, direction: DESC }) {
           pageInfo { hasNextPage endCursor }
-          nodes { ... on PullRequest { additions deletions } }
+          nodes { createdAt additions deletions }
         }
-      }`,
-      { q: `author:${LOGIN} is:pr created:${range}`, cursor: prCursor }
-    );
-    for (const n of data.search.nodes) {
-      if (n && typeof n.additions === "number") {
-        prAdditions += n.additions;
-        prDeletions += n.deletions;
-        prCount++;
       }
+    }`,
+    { login: LOGIN, cursor: prCursor }
+  );
+  const prs = data.user.pullRequests;
+  let pastCutoff = false;
+  for (const n of prs.nodes) {
+    if (new Date(n.createdAt) < prCutoff) {
+      pastCutoff = true;
+      break;
     }
-    prCursor = data.search.pageInfo.hasNextPage ? data.search.pageInfo.endCursor : null;
-  } while (prCursor);
-}
+    prAdditions += n.additions;
+    prDeletions += n.deletions;
+    prCount++;
+  }
+  prCursor = !pastCutoff && prs.pageInfo.hasNextPage ? prs.pageInfo.endCursor : null;
+} while (prCursor);
 
 const stats = {
   generated: iso(now),
