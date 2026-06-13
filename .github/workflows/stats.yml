@@ -18,7 +18,9 @@ jobs:
           node-version: 22
       - name: Fetch stats
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Must be a personal access token: the default Actions GITHUB_TOKEN is
+          # repo-scoped and returns zeros for user contribution data.
+          GITHUB_TOKEN: ${{ secrets.STATS_TOKEN }}
         run: node scripts/fetch-stats.mjs
       - name: Commit updated stats
         run: |
