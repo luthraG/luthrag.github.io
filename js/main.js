@@ -1,4 +1,4 @@
-/* Gaurav Luthra — portfolio interactions & telemetry charts (no dependencies) */
+/* Gaurav Luthra - portfolio interactions & telemetry charts (no dependencies) */
 (() => {
   "use strict";
 
@@ -70,8 +70,8 @@
     ['t-cmd', '$ whoami --verbose'],
     ['', ''],
     ['t-key', 'founder   ', 't-str', '"Yuvanya Systems"'],
-    ['t-key', 'role      ', 't-str', '"Distinguished Engineer @ Zippia"'],
-    ['t-key', 'oss       ', 't-str', '"CubeAPM — anomaly detection, profiler, CQL"'],
+    ['t-key', 'role      ', 't-str', '"Distinguished Engineer"'],
+    ['t-key', 'oss       ', 't-str', '"CubeAPM - anomaly detection, profiler, CQL"'],
     ['t-key', 'stack     ', 't-str', '[py, go, node, k8s, es, llm]'],
     ['t-key', 'uptime    ', 't-str', '15y+'],
   ];
