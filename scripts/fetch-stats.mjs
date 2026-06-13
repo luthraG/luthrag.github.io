@@ -152,8 +152,10 @@ const languages = [...langBytes.entries()]
   .map(([name, size]) => ({ name, size, color: langColors.get(name) || "#8b98a5" }));
 
 // ---- Lines changed: additions/deletions across PRs authored in last 10 years ----
-// Uses the user.pullRequests connection rather than the search API: search
-// silently returns zero results for tokens without the full repo scope.
+// Most of these PRs live in PRIVATE repos (Zippia, cubeapm), so the token
+// must have the full repo scope - lesser tokens see zero PRs (no error).
+// user.pullRequests is used over the search API: simpler pagination, no
+// 1000-result cap, same data.
 let prAdditions = 0;
 let prDeletions = 0;
 let prCount = 0;
