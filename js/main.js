@@ -21,6 +21,27 @@
     }
   });
 
+  /* ---------- scroll-spy nav ---------- */
+  const spyLinks = $$('.nav-links a[href^="#"]').filter((a) => a.hash.length > 1);
+  const spyTargets = spyLinks
+    .map((a) => document.getElementById(a.hash.slice(1)))
+    .filter(Boolean);
+  const spy = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        spyLinks.forEach((a) =>
+          a.classList.toggle("active", a.hash === "#" + e.target.id)
+        );
+      }
+    },
+    { rootMargin: "-30% 0px -60% 0px" }
+  );
+  spyTargets.forEach((t) => spy.observe(t));
+  addEventListener("scroll", () => {
+    if (scrollY < 200) spyLinks.forEach((a) => a.classList.remove("active"));
+  }, { passive: true });
+
   /* ---------- scroll reveals ---------- */
   const io = new IntersectionObserver(
     (entries) => {

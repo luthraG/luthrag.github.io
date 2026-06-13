@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Spline+Sans+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<noscript><style>.reveal { opacity: 1; transform: none; }</style></noscript>
 </head>
 <body>
 <div class="bg-grid" aria-hidden="true"></div>
@@ -24,9 +25,9 @@
 <header class="nav">
   <a class="nav-logo" href="#top">gl<span class="accent">@</span>luthra<span class="cursor-blink">_</span></a>
   <nav class="nav-links">
-    <a href="#activity">activity</a>
     <a href="#experience">experience</a>
     <a href="#work">work</a>
+    <a href="#activity">activity</a>
     <a href="#consulting">consulting</a>
     <a href="#honors">honors</a>
     <a href="#contact" class="nav-cta">contact</a>
@@ -45,10 +46,11 @@
       <h1 class="hero-name reveal">Gaurav<br>Luthra</h1>
       <p class="hero-role reveal">Founder, <a href="#consulting">Yuvanya Systems</a> ·
         <span class="accent">Distinguished Engineer</span></p>
-      <p class="hero-blurb reveal">15+ years architecting backend systems that stay up and stay fast -
-        microservices, distributed data platforms, cloud infrastructure on GCP &amp; AWS, and
-        ML-powered products serving millions of users. Patented at Adobe, scaled at Zippia,
-        now building next-generation observability for CubeAPM.</p>
+      <p class="hero-lede reveal">I architect backend systems that serve millions of users -
+        and stay fast under load.</p>
+      <p class="hero-blurb reveal">15+ years across distributed systems, cloud platforms and
+        ML-powered products. Patented at Adobe, scaled Zippia's platform, now building
+        next-generation observability for CubeAPM.</p>
       <div class="hero-ctas reveal">
         <a class="btn btn-primary" href="mailto:luthra.zenith@gmail.com">Get in touch</a>
         <a class="btn btn-icon" href="https://github.com/luthraG" target="_blank" rel="noopener" aria-label="GitHub">
@@ -93,47 +95,9 @@
     </div>
   </div>
 
-  <!-- ============ GITHUB ACTIVITY ============ -->
-  <section class="section" id="activity">
-    <h2 class="section-title reveal"><span class="section-no">// 01</span> Shipping, measured</h2>
-    <p class="section-sub reveal">Live from the GitHub API - refreshed weekly by a scheduled workflow.</p>
-
-    <div class="stat-tiles reveal">
-      <div class="tile"><strong id="st-contrib">-</strong><span>contributions <em>/ 12 mo</em></span></div>
-      <div class="tile"><strong id="st-commits">-</strong><span>commits <em>/ 12 mo</em></span></div>
-      <div class="tile"><strong id="st-prs">-</strong><span>pull requests <em>/ 10 yr</em></span></div>
-      <div class="tile"><strong id="st-lines">-</strong><span>lines changed <em>/ 10 yr</em></span></div>
-      <div class="tile"><strong id="st-reviews">-</strong><span>code reviews <em>/ 12 mo</em></span></div>
-      <div class="tile"><strong id="st-stars">-</strong><span>stars earned</span></div>
-    </div>
-
-    <div class="panel reveal">
-      <div class="panel-head">
-        <h3>Commits &amp; pull requests - month over month, last 10 years</h3>
-        <div class="legend">
-          <span class="lg lg-commits">commits</span>
-          <span class="lg lg-prs">pull requests</span>
-        </div>
-      </div>
-      <div id="chart-monthly" class="chart"></div>
-    </div>
-
-    <div class="panel-row">
-      <div class="panel reveal">
-        <div class="panel-head"><h3>Contribution heatmap - last 12 months</h3></div>
-        <div id="heatmap" class="heatmap-scroll"></div>
-      </div>
-      <div class="panel reveal">
-        <div class="panel-head"><h3>Languages by volume</h3></div>
-        <div id="langs" class="langs"></div>
-      </div>
-    </div>
-    <p class="stamp reveal" id="stats-stamp"></p>
-  </section>
-
   <!-- ============ EXPERIENCE ============ -->
   <section class="section" id="experience">
-    <h2 class="section-title reveal"><span class="section-no">// 02</span> Experience</h2>
+    <h2 class="section-title reveal"><span class="section-no">// 01</span> Experience</h2>
 
     <ol class="timeline">
       <li class="reveal">
@@ -149,13 +113,13 @@
         <div class="tl-body">
           <h3>Distinguished Engineer · <span class="tl-co">Zippia</span></h3>
           <p class="tl-track">Lead Computer Scientist → Senior Computer Architect → Distinguished Engineer</p>
-          <ul>
-            <li>Own technical strategy and architecture; led the cloud-native migration to GCP with containerized, autoscaled workloads, cutting infrastructure spend 28% while improving scalability</li>
-            <li>Architected the ML-powered job recommendation engine - Elasticsearch retrieval with data-science ranking over 7M+ listings, lifting recommendation relevance 40%</li>
-            <li>Decomposed the platform into 10+ microservices (Node.js, MongoDB, Elasticsearch, Redis), reducing deployment lead time 30% and cutting p95 latency 40% via multi-tier caching and real-time data processing</li>
-            <li>Built real-time analytics pipelines processing millions of events daily; hardened the edge with Nginx-level bot detection and attack mitigation</li>
-            <li>Mentor a team of 10 engineers; drive architecture reviews and engineering standards</li>
-          </ul>
+          <p>Drive technical strategy for a job platform serving millions of users. Led the
+             cloud-native migration to GCP (28% lower infrastructure spend), architected the
+             ML-powered recommendation engine over 7M+ listings (+40% relevance), decomposed
+             the platform into 10+ microservices (30% faster deployments, 40% lower p95
+             latency), and hardened the edge with bot detection and attack mitigation.
+             Mentor a team of 10 engineers.</p>
+          <p class="tl-tags"><span>Node.js</span><span>Python</span><span>GCP</span><span>Kubernetes</span><span>Elasticsearch</span><span>MongoDB</span><span>Redis</span><span>Nginx</span></p>
         </div>
       </li>
       <li class="reveal">
@@ -170,30 +134,29 @@
         <div class="tl-meta"><span class="tl-date">2015 - 2016</span><span class="tl-loc">New Delhi</span></div>
         <div class="tl-body">
           <h3>Lead Software Engineer · <span class="tl-co">Armor5</span> <span class="tl-note">acquired by Digital Guardian</span></h3>
-          <ul>
-            <li>Engineered the reverse-proxy core's client-server architecture, cutting server response times 25%</li>
-            <li>Built a virtual browser for secure web isolation - real-time DOM mirroring with CSS/JS/HTML caching</li>
-          </ul>
+          <p>Engineered the reverse-proxy core's client-server architecture (25% faster
+             responses) and built a virtual browser for secure web isolation - real-time
+             DOM mirroring with CSS/JS/HTML caching.</p>
+          <p class="tl-tags"><span>reverse proxy</span><span>virtual browser</span><span>web security</span></p>
         </div>
       </li>
       <li class="reveal">
         <div class="tl-meta"><span class="tl-date">2012 - 2015</span><span class="tl-loc">Bangalore</span></div>
         <div class="tl-body">
           <h3>Software Engineer 2 · <span class="tl-co">Adobe</span></h3>
-          <ul>
-            <li>Invented and patented the audio-fingerprint content-sync algorithm behind Adobe Dhwani (US9392144B2); led development of the Android client</li>
-            <li>Led subscription-licensing development for Adobe Licensing Management</li>
-          </ul>
+          <p>Invented and patented the audio-fingerprint content-sync algorithm behind Adobe
+             Dhwani (US9392144B2), led development of the Android client, and drove
+             subscription-licensing development for Adobe Licensing Management.</p>
+          <p class="tl-tags"><span>Android</span><span>content sync</span><span>licensing</span></p>
         </div>
       </li>
       <li class="reveal">
         <div class="tl-meta"><span class="tl-date">2011 - 2012</span><span class="tl-loc">New Delhi</span></div>
         <div class="tl-body">
           <h3>Software Engineer · <span class="tl-co">Newgen Software</span></h3>
-          <ul>
-            <li>Built a C#/.NET layout engine for high-volume PDF generation, improving document throughput 30%</li>
-            <li>Re-engineered the data-parsing layer, cutting file I/O 40% and reducing retrieval latency</li>
-          </ul>
+          <p>Built a C#/.NET layout engine for high-volume PDF generation (+30% document
+             throughput) and re-engineered the data-parsing layer, cutting file I/O 40%.</p>
+          <p class="tl-tags"><span>C#</span><span>.NET</span><span>PDF rendering</span></p>
         </div>
       </li>
     </ol>
@@ -201,7 +164,7 @@
 
   <!-- ============ SELECTED WORK ============ -->
   <section class="section" id="work">
-    <h2 class="section-title reveal"><span class="section-no">// 03</span> Selected work</h2>
+    <h2 class="section-title reveal"><span class="section-no">// 02</span> Selected work</h2>
     <p class="section-sub reveal">Recent open-source engineering for <a href="https://github.com/cubeapm/cubeapm" target="_blank" rel="noopener">CubeAPM</a>, plus career highlights.</p>
 
     <div class="cards">
@@ -279,6 +242,44 @@
         <a class="card-link" href="https://patents.google.com/patent/US9392144B2" target="_blank" rel="noopener">Patent ↗</a>
       </article>
     </div>
+  </section>
+
+  <!-- ============ GITHUB ACTIVITY ============ -->
+  <section class="section" id="activity">
+    <h2 class="section-title reveal"><span class="section-no">// 03</span> Shipping, measured</h2>
+    <p class="section-sub reveal">Live from the GitHub API - refreshed weekly by a scheduled workflow.</p>
+
+    <div class="stat-tiles reveal">
+      <div class="tile"><strong id="st-contrib">-</strong><span>contributions <em>/ 12 mo</em></span></div>
+      <div class="tile"><strong id="st-commits">-</strong><span>commits <em>/ 12 mo</em></span></div>
+      <div class="tile"><strong id="st-prs">-</strong><span>pull requests <em>/ 10 yr</em></span></div>
+      <div class="tile"><strong id="st-lines">-</strong><span>lines changed <em>/ 10 yr</em></span></div>
+      <div class="tile"><strong id="st-reviews">-</strong><span>code reviews <em>/ 12 mo</em></span></div>
+      <div class="tile"><strong id="st-stars">-</strong><span>stars earned</span></div>
+    </div>
+
+    <div class="panel reveal">
+      <div class="panel-head">
+        <h3>Commits &amp; pull requests - month over month, last 10 years</h3>
+        <div class="legend">
+          <span class="lg lg-commits">commits</span>
+          <span class="lg lg-prs">pull requests</span>
+        </div>
+      </div>
+      <div id="chart-monthly" class="chart"></div>
+    </div>
+
+    <div class="panel-row">
+      <div class="panel reveal">
+        <div class="panel-head"><h3>Contribution heatmap - last 12 months</h3></div>
+        <div id="heatmap" class="heatmap-scroll"></div>
+      </div>
+      <div class="panel reveal">
+        <div class="panel-head"><h3>Languages by volume</h3></div>
+        <div id="langs" class="langs"></div>
+      </div>
+    </div>
+    <p class="stamp reveal" id="stats-stamp"></p>
   </section>
 
   <!-- ============ CONSULTING ============ -->
