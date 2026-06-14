@@ -12,10 +12,14 @@
   const L2 = el.dataset.l2 || "";
   el.setAttribute("aria-label", (L1 + " " + L2).trim());
 
-  const KEY = "hero-typed-v1";
-  let typedBefore = false;
-  try { typedBefore = !!localStorage.getItem(KEY); } catch (e) { typedBefore = false; }
-  const markTyped = () => { try { localStorage.setItem(KEY, "1"); } catch (e) {} };
+  const KEY = "hero-typed-at";
+  const REPLAY_AFTER = 30 * 24 * 60 * 60 * 1000; // re-welcome after 30 days
+  let typedRecently = false;
+  try {
+    const last = parseInt(localStorage.getItem(KEY) || "0", 10);
+    typedRecently = last > 0 && Date.now() - last < REPLAY_AFTER;
+  } catch (e) { typedRecently = false; }
+  const markTyped = () => { try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {} };
 
   function letterSpan(ch) {
     const s = document.createElement("span");
@@ -86,7 +90,7 @@
     }, 90);
   }
 
-  if (reduce) { buildStatic(); return; }       // no motion at all
-  if (typedBefore) { enableCursor(buildStatic()); } // returning visitor: straight to cursor
-  else { typeThenCursor(); markTyped(); }        // first visit: type, then cursor
+  if (reduce) { buildStatic(); return; }            // no motion at all
+  if (typedRecently) { enableCursor(buildStatic()); } // seen it within 30 days: straight to cursor
+  else { typeThenCursor(); markTyped(); }             // first visit (or 30+ days later): type, then cursor
 })();
