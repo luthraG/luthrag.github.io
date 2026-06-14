@@ -55,6 +55,8 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 75%);
   -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 75%);
 }
+#grid-fx { position: fixed; inset: 0; z-index: -2; pointer-events: none; }
+body.gridfx .bg-grid { display: none; }
 .bg-glow {
   position: fixed; z-index: -1; pointer-events: none;
   border-radius: 50%; filter: blur(110px); opacity: 0.16;
