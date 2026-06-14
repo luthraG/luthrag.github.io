@@ -204,6 +204,177 @@
     render();
   }
 
+  /* ============ Diagram: sampling, not instrumenting ============ */
+  function diagramSampling(host) {
+    const W = 680, H = 230;
+    const svg = svgRoot(host, W, H);
+    const rc = rough.svg(svg);
+    const axisY = 176, x0 = 48, x1 = 632;
+
+    svg.appendChild(rc.line(x0, axisY, x1, axisY, { stroke: C.faint, strokeWidth: 1.5, roughness: 1.4 }));
+    arrow(svg, x0, axisY, x1, axisY, C.faint);
+    text(svg, x1, axisY + 18, "time", { fill: C.muted, size: 11, anchor: "end" });
+
+    // sample ticks, each with a captured stack of varying depth; the bottom
+    // frame is shared (always on CPU) -> drawn in accent to foreshadow the widest flame
+    const depths = [3, 2, 4, 3, 2, 4, 3, 2, 3];
+    const n = depths.length, gap = (x1 - x0 - 40) / (n - 1);
+    const cw = 30, ch = 13;
+    for (let i = 0; i < n; i++) {
+      const cx = x0 + 22 + i * gap;
+      svg.appendChild(rc.line(cx, axisY - 4, cx, axisY + 4, { stroke: C.faint, strokeWidth: 1, roughness: 1 }));
+      for (let d = 0; d < depths[i]; d++) {
+        const y = axisY - 12 - d * (ch + 2);
+        const shared = d === 0;
+        svg.appendChild(rc.rectangle(cx - cw / 2, y - ch, cw, ch, {
+          stroke: shared ? C.accent : C.line, strokeWidth: shared ? 1.4 : 1,
+          fill: shared ? C.accent : C.muted, fillStyle: "hachure",
+          fillWeight: 0.5, hachureGap: 4, roughness: 1.1,
+        }));
+      }
+    }
+    text(svg, W / 2, 26, "100 samples / sec   ·   ~1% overhead", { fill: C.amber, size: 13 });
+    text(svg, x0 + 22, axisY + 18, "each tick = one captured call stack", { fill: C.faint, size: 11, anchor: "start" });
+  }
+
+  /* ============ Diagram: many runtimes, one model ============ */
+  function diagramRuntimes(host) {
+    const W = 680, H = 300;
+    const svg = svgRoot(host, W, H);
+    const rc = rough.svg(svg);
+    const runtimes = ["Go pprof", "Java JFR", "Python", "Node", "Ruby", ".NET", "PHP", "native"];
+    const lx = 96, top = 44, rowH = 28;
+
+    runtimes.forEach((r, i) => {
+      const y = top + i * rowH;
+      text(svg, lx, y + 4, r, { fill: C.muted, size: 12, anchor: "end" });
+      svg.appendChild(rc.line(lx + 10, y, 250, 150, { stroke: C.line, strokeWidth: 0.8, roughness: 1.4 }));
+    });
+
+    // dispatcher
+    svg.appendChild(rc.rectangle(250, 124, 150, 54, {
+      stroke: C.accent, strokeWidth: 1.6, roughness: 1.3, fill: C.accent,
+      fillStyle: "hachure", fillWeight: 0.6, hachureGap: 7,
+    }));
+    text(svg, 325, 147, "parser", { fill: C.text, size: 13 });
+    text(svg, 325, 165, "dispatcher", { fill: C.text, size: 13 });
+
+    // unified model
+    svg.appendChild(rc.line(400, 151, 446, 151, { stroke: C.faint, strokeWidth: 1.4, roughness: 1.4 }));
+    arrow(svg, 400, 151, 448, 151, C.faint);
+    svg.appendChild(rc.rectangle(450, 126, 132, 50, {
+      stroke: C.amber, strokeWidth: 1.6, roughness: 1.3,
+    }));
+    text(svg, 516, 147, "unified", { fill: C.amber, size: 12.5 });
+    text(svg, 516, 164, "profile model", { fill: C.amber, size: 12.5 });
+
+    // downstream consumers
+    const outs = ["store", "query", "flamegraph"];
+    outs.forEach((o, i) => {
+      const y = 96 + i * 40;
+      svg.appendChild(rc.line(582, 151, 606, y + 12, { stroke: C.line, strokeWidth: 0.8, roughness: 1.4 }));
+      text(svg, 612, y + 16, o, { fill: C.muted, size: 11.5, anchor: "start" });
+    });
+    text(svg, 96, top - 22, "every runtime", { fill: C.faint, size: 11, anchor: "end" });
+    text(svg, 325, 200, "new runtime = new parser, not a rewrite", { fill: C.faint, size: 11 });
+  }
+
+  /* ============ Interactive widget: flame graph ============ */
+  function widgetFlamegraph(root) {
+    const svg = root.querySelector("[data-fg-svg]");
+    const readout = root.querySelector("[data-fg-readout]");
+    const resetBtn = root.querySelector("[data-fg-reset]");
+    const W = 680, rowH = 30, pad = 6, H = 220;
+
+    // a sampled CPU profile of a request handler (value = samples in subtree)
+    const tree = {
+      name: "http.Serve", value: 1000, children: [
+        { name: "router.Match", value: 60 },
+        { name: "Handler.ServeHTTP", value: 910, children: [
+          { name: "db.Query", value: 520, children: [
+            { name: "conn.Read", value: 300 },
+            { name: "rows.Scan", value: 180, children: [
+              { name: "reflect.Set", value: 130 },
+            ] },
+          ] },
+          { name: "json.Marshal", value: 250, children: [
+            { name: "reflect.Walk", value: 210 },
+          ] },
+          { name: "tmpl.Render", value: 110, children: [
+            { name: "html.Escape", value: 64 },
+          ] },
+        ] },
+        { name: "mw.Log", value: 30 },
+      ],
+    };
+    const TOTAL = tree.value;
+    const palette = ["#3ddc97", "#36c6b0", "#2ea8c9", "#5b8def", "#f0b429", "#e8895a", "#9b8bd6", "#4db6a0"];
+    const colorOf = (name) => {
+      let h = 0;
+      for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffff;
+      return palette[h % palette.length];
+    };
+    let focus = tree;
+
+    function maxDepth(node, d = 0) {
+      if (!node.children || !node.children.length) return d;
+      return Math.max(...node.children.map((c) => maxDepth(c, d + 1)));
+    }
+
+    function render() {
+      svg.innerHTML = "";
+      const depthN = maxDepth(focus) + 1;
+      const innerW = W - pad * 2;
+      const scale = innerW / focus.value;
+      const totalH = pad * 2 + depthN * rowH + 2;
+      svg.setAttribute("viewBox", `0 0 ${W} ${totalH}`);
+      svg.setAttribute("height", totalH);
+
+      const drawNode = (node, depth, x) => {
+        const w = node.value * scale;
+        const y = pad + depth * rowH;
+        const g = mk("g", { style: "cursor:pointer" });
+        const fill = colorOf(node.name);
+        const rect = mk("rect", {
+          x: x + 0.5, y: y, width: Math.max(w - 1, 1), height: rowH - 3, rx: 3,
+          fill, "fill-opacity": node === focus ? 1 : 0.82,
+        });
+        g.appendChild(rect);
+        if (w > 34) {
+          const chars = Math.floor((w - 10) / 6.6);
+          const label = node.name.length > chars ? node.name.slice(0, Math.max(chars - 1, 1)) + "…" : node.name;
+          const t = mk("text", {
+            x: x + 7, y: y + (rowH - 3) / 2 + 4, fill: "#07121a",
+            "font-size": 11, "font-family": "Spline Sans Mono, monospace", "pointer-events": "none",
+          });
+          t.textContent = label;
+          g.appendChild(t);
+        }
+        const pct = ((node.value / TOTAL) * 100).toFixed(1);
+        g.addEventListener("mouseenter", () => {
+          rect.setAttribute("stroke", "#e7f4ee");
+          rect.setAttribute("stroke-width", "1.5");
+          readout.innerHTML = `<b>${node.name}</b> · ${node.value} samples · ${pct}% of CPU`;
+        });
+        g.addEventListener("mouseleave", () => {
+          rect.removeAttribute("stroke");
+          readout.textContent = "hover a frame · click to zoom";
+        });
+        g.addEventListener("click", () => { focus = node; render(); });
+        svg.appendChild(g);
+
+        let cx = x;
+        (node.children || []).forEach((c) => { drawNode(c, depth + 1, cx); cx += c.value * scale; });
+      };
+
+      drawNode(focus, 0, pad);
+      resetBtn.style.visibility = focus === tree ? "hidden" : "visible";
+    }
+
+    resetBtn.addEventListener("click", () => { focus = tree; render(); });
+    render();
+  }
+
   /* ---------- dispatch ---------- */
   function init() {
     if (typeof rough === "undefined") return;
@@ -211,8 +382,11 @@
       const kind = host.getAttribute("data-diagram");
       if (kind === "hot-path") diagramHotPath(host);
       else if (kind === "seasonal") diagramSeasonal(host);
+      else if (kind === "sampling") diagramSampling(host);
+      else if (kind === "runtimes") diagramRuntimes(host);
     });
     document.querySelectorAll("[data-widget='anomaly-band']").forEach(widgetAnomalyBand);
+    document.querySelectorAll("[data-widget='flamegraph']").forEach(widgetFlamegraph);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Continuous Profiling: Finding Where the CPU Actually Goes - Gaurav Luthra</title>
+<meta name="description" content="Metrics tell you a service is slow; profiling tells you which function. How always-on sampling profilers work at ~1% overhead, how to read a flame graph, and what it takes to ingest every language runtime into one model.">
+<meta property="og:title" content="Continuous Profiling: Finding Where the CPU Actually Goes">
+<meta property="og:description" content="How always-on sampling profilers work, how to read a flame graph, and what it takes to support every runtime at once.">
+<meta property="og:image" content="https://luthrag.github.io/assets/gaurav.webp">
+<meta property="og:url" content="https://luthrag.github.io/writing/continuous-profiling.html">
+<meta property="og:type" content="article">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Spline+Sans+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/writing.css">
+</head>
+<body>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow bg-glow-1" aria-hidden="true"></div>
+
+<header class="nav">
+  <a class="nav-logo" href="../">gl<span class="accent">@</span>luthra<span class="cursor-blink">_</span></a>
+  <nav class="nav-links">
+    <a href="../#experience">experience</a>
+    <a href="../#work">work</a>
+    <a href="./" class="active">writing</a>
+    <a href="../#consulting">consulting</a>
+    <a href="../#honors">honors</a>
+    <a href="../#contact" class="nav-cta">contact</a>
+  </nav>
+  <button class="nav-burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+</header>
+
+<main class="article-wrap">
+  <article class="article">
+    <p class="crumb"><a href="../">home</a><span>/</span><a href="./">writing</a></p>
+    <p class="article-meta">June 2026 · <span class="accent">~8 min read</span> · observability</p>
+    <h1>Continuous Profiling: Finding Where the CPU Actually Goes</h1>
+    <p class="article-dek">Metrics tell you a service is slow. Traces tell you which request.
+       Profiling tells you the exact function - and continuous profiling does it in
+       production, always on, at about 1% overhead. Here is how sampling profilers work,
+       how to read a flame graph, and what it takes to support every runtime at once.</p>
+    <div class="article-tags"><span>profiling</span><span>observability</span><span>flame graphs</span><span>performance</span><span>Go</span></div>
+
+    <div class="prose">
+
+      <p>You get paged: a service's CPU is pinned and latency is climbing. Your dashboards
+         confirm it - CPU at 90%, p99 doubled. Your traces show the slow endpoint. And then
+         you are stuck, because none of those tools answer the only question that fixes the
+         problem: <em>which code is burning the CPU?</em></p>
+
+      <p>That is the gap profiling fills. Metrics are aggregates, traces are request paths,
+         but a profile is a breakdown of where the machine actually spent its cycles, down to
+         the function and line. The catch has always been that profiling was something you did
+         <em>locally</em>, on your laptop, against a synthetic workload - which behaves nothing
+         like production at 3am under real traffic. Continuous profiling closes that gap: it
+         runs always-on, in production, cheaply enough to leave on forever.</p>
+
+      <h2><span class="h2-no">01</span> Sample, don't instrument</h2>
+
+      <p>The naive way to measure where time goes is to instrument every function - record a
+         timestamp on entry and exit. That is accurate and ruinously expensive: you pay on
+         every single call, and the measurement itself distorts what you are measuring.</p>
+
+      <p>Sampling profilers take the opposite approach. Many times per second - say 100Hz - the
+         profiler interrupts the program and records just one thing: the current call stack.
+         That's it. Each sample is cheap, and over thousands of samples a statistical picture
+         emerges: a function that shows up in 40% of samples was using roughly 40% of the CPU.
+         You never counted a single function call, yet you know exactly where the time went.</p>
+
+      <figure class="diagram" data-diagram="sampling">
+        <figcaption>At a fixed frequency the profiler snapshots the live call stack; functions that appear in more samples were on-CPU more often.</figcaption>
+      </figure>
+
+      <p>Because the cost is fixed per sample rather than per call, overhead stays around 1%
+         regardless of how busy the service is. That is the number that makes "always on in
+         production" possible.</p>
+
+      <h2><span class="h2-no">02</span> The flame graph</h2>
+
+      <p>Thousands of stack samples are useless as a list. The flame graph is how you make them
+         legible. Every sampled stack is merged into a tree: the bottom frame is the entry point,
+         each frame above it is a function it called. A frame's <strong>width is proportional to
+         how many samples contained it</strong> - which is to say, how much CPU it and its
+         children used. Wide frames are where your time goes. Tall stacks are deep call chains.</p>
+
+      <p>The trick to reading one: scan left to right for the <em>widest</em> frames, ignore the
+         tall-but-thin ones (deep but cheap), and look for a wide frame whose children are all
+         narrow - that frame is doing expensive work itself. Try it. Hover any frame for its
+         share of CPU; click it to zoom in and rescale its subtree to full width; click reset to
+         zoom back out.</p>
+
+      <figure class="widget" data-widget="flamegraph">
+        <div class="widget-head">
+          <h3>Flame graph - one request handler</h3>
+          <span class="widget-readout" data-fg-readout>hover a frame · click to zoom</span>
+        </div>
+        <svg data-fg-svg viewBox="0 0 680 220" width="680" height="220" role="img" aria-label="Interactive flame graph"></svg>
+        <div class="widget-controls">
+          <button class="widget-btn" data-fg-reset>↺ reset zoom</button>
+        </div>
+      </figure>
+
+      <p>In that handler, the request itself is a sliver - almost all the CPU is under
+         <code>db.Query</code>, and within it the row scanning and reflection, not the SQL.
+         That is the kind of thing a flame graph makes obvious in seconds and a dashboard never
+         will.</p>
+
+      <h2><span class="h2-no">03</span> One model, many runtimes</h2>
+
+      <p>Sampling is simple in principle and a mess in practice, because every language runtime
+         emits its profiles in a different shape. Go speaks pprof. The JVM emits JFR. Python,
+         Node, Ruby, .NET, PHP, and native (perf-style) agents each have their own wire format,
+         their own idea of what a stack frame even is. If you want one product that ingests all
+         of them, the formats are the hard part, not the sampling.</p>
+
+      <figure class="diagram" data-diagram="runtimes">
+        <figcaption>A dispatcher parses each runtime's wire format into one normalized profile model; everything downstream sees a single shape.</figcaption>
+      </figure>
+
+      <p>The design that survives contact with reality is a <strong>parser dispatcher</strong>:
+         a thin front that recognizes the format and routes to a per-runtime parser, each of
+         which normalizes into a single internal profile model. Everything downstream - storage,
+         query, the flame-graph UI - sees one shape. Adding a new runtime is a new parser file,
+         not a rewrite. That boundary is the whole architecture; get it right and the eighth
+         format costs the same as the second.</p>
+
+      <h2><span class="h2-no">04</span> Storing and diffing</h2>
+
+      <p>Profiles are heavier than metrics - each one is a whole tree of stacks, not a single
+         number - so storage gets its own treatment: keep the raw profile bytes, index them by
+         service and time, and lean on the fact that consecutive profiles from the same service
+         overlap enormously, so they compress and dedup well.</p>
+
+      <p>The feature that pays for all of it is the <strong>diff</strong>. Pick two time windows -
+         before a deploy and after - and subtract one flame graph from the other. Frames that got
+         wider light up: that is your regression, named down to the function, with no guesswork.
+         "p99 went up after Tuesday's release" becomes "this function started taking 3x the CPU,"
+         which is a bug you can actually go fix.</p>
+
+      <div class="callout">
+        <p><strong>The throughline:</strong> sampling makes profiling cheap enough to always run,
+           a normalized model makes it work for every runtime, and diffing turns it from a
+           debugging tool into a regression alarm.</p>
+      </div>
+
+      <h2><span class="h2-no">05</span> The payoff</h2>
+
+      <div class="lead-stat">
+        <div><dt>~1%</dt><dd>overhead, always on</dd></div>
+        <div><dt>8</dt><dd>runtimes, one model</dd></div>
+        <div><dt>function</dt><dd>resolution, in prod</dd></div>
+      </div>
+
+      <p>Metrics and traces tell you that something is wrong and roughly where. Continuous
+         profiling tells you the exact line, in production, under real load, cheaply enough that
+         it is just always there when you need it. Once a team has it, "the service is slow"
+         stops being an investigation and starts being a lookup.</p>
+
+      <div class="article-foot">
+        <p>Building observability tooling and want a second pair of hands?
+           <a class="accent" href="mailto:luthra.zenith@gmail.com">luthra.zenith@gmail.com</a></p>
+        <a class="article-back" href="./">← all writing</a>
+      </div>
+
+    </div>
+  </article>
+</main>
+
+<script src="../js/rough.js"></script>
+<script src="../js/diagrams.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>

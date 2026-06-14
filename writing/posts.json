@@ -1,5 +1,15 @@
 [
   {
+    "title": "Continuous Profiling: Finding Where the CPU Actually Goes",
+    "file": "continuous-profiling.html",
+    "date": "2026 · 06",
+    "year": "2026",
+    "topic": "observability",
+    "blurb": "Metrics say a service is slow; profiling says which function. How always-on sampling profilers work, how to read a flame graph, and what it takes to ingest every runtime into one model.",
+    "blurbHome": "Metrics say a service is slow; profiling says which line. How always-on sampling profilers work at ~1% overhead, how to read a flame graph (interactive - click to zoom), and what it takes to ingest every runtime into one model.",
+    "tags": ["profiling", "observability", "flame graphs", "performance"]
+  },
+  {
     "title": "Anomaly Detection for Alerting, at Nanosecond Cost",
     "file": "anomaly-detection-at-nanosecond-cost.html",
     "date": "2026 · 06",
