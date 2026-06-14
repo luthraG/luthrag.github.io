@@ -307,7 +307,7 @@ main { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
 .chart-tip .tc { color: var(--accent); }
 .chart-tip .tp { color: var(--amber); }
 
-.panel-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: 22px; }
+.panel-row { display: grid; grid-template-columns: 1fr; gap: 22px; }
 .panel-row .panel { margin-bottom: 0; }
 
 .heatmap-scroll { overflow-x: auto; max-width: 100%; padding-bottom: 6px; }
@@ -483,7 +483,6 @@ main { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
   .stat-tiles { grid-template-columns: repeat(3, 1fr); }
   .cards { grid-template-columns: repeat(2, 1fr); }
   .honors { grid-template-columns: repeat(2, 1fr); }
-  .panel-row { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 860px) {

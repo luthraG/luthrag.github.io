@@ -367,7 +367,7 @@
   /* ---------- contribution heatmap ---------- */
   function renderHeatmap(calendar) {
     const host = document.getElementById("heatmap");
-    const CELL = 11, GAP = 3, TOP = 18, LEFT = 26;
+    const GAP = 3, TOP = 18, LEFT = 26;
 
     // organize into week columns (calendar already starts on a Sunday per GitHub)
     const weeks = [];
@@ -378,8 +378,6 @@
     }
     if (week.length) weeks.push(week);
 
-    const W = LEFT + weeks.length * (CELL + GAP);
-    const H = TOP + 7 * (CELL + GAP) + 4;
     const max = Math.max(...calendar.map((c) => c[1]), 1);
     const level = (c) =>
       c === 0 ? "#101820"
@@ -387,51 +385,65 @@
       : c <= max * 0.35 ? "#14684a"
       : c <= max * 0.65 ? "#23a96f"
       : "#3ddc97";
-
-    const svg = svgEl("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}` });
-
-    const DAYS = ["", "mon", "", "wed", "", "fri", ""];
-    DAYS.forEach((d, i) => {
-      if (!d) return;
-      const t = svgEl("text", {
-        x: 0, y: TOP + i * (CELL + GAP) + CELL - 2,
-        fill: "#4a5662", "font-size": 9, "font-family": "Spline Sans Mono, monospace",
-      });
-      t.textContent = d;
-      svg.appendChild(t);
-    });
-
     const MONTHS = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
-    let lastMonth = -1;
-    weeks.forEach((wk, wi) => {
-      const first = wk.find(Boolean);
-      if (first) {
-        const m = new Date(first.date + "T00:00:00Z").getUTCMonth();
-        if (m !== lastMonth) {
-          lastMonth = m;
-          const t = svgEl("text", {
-            x: LEFT + wi * (CELL + GAP), y: 10,
-            fill: "#4a5662", "font-size": 9, "font-family": "Spline Sans Mono, monospace",
-          });
-          t.textContent = MONTHS[m];
-          svg.appendChild(t);
-        }
-      }
-      wk.forEach((day, di) => {
-        if (!day) return;
-        const r = svgEl("rect", {
-          x: LEFT + wi * (CELL + GAP), y: TOP + di * (CELL + GAP),
-          width: CELL, height: CELL, rx: 2.5, fill: level(day.count),
-        });
-        const title = svgEl("title", {});
-        title.textContent = `${day.date}: ${day.count} contribution${day.count === 1 ? "" : "s"}`;
-        r.appendChild(title);
-        svg.appendChild(r);
-      });
-    });
+    const DAYS = ["", "mon", "", "wed", "", "fri", ""];
 
-    host.appendChild(svg);
-    host.scrollLeft = host.scrollWidth; // most recent weeks visible first
+    function draw() {
+      host.innerHTML = "";
+      // size cells to fill the container width when there's room (desktop, no
+      // scroll); clamp to a readable min so a narrow screen scrolls instead.
+      const avail = host.clientWidth || 768;
+      let CELL = Math.floor((avail - LEFT) / weeks.length) - GAP;
+      CELL = Math.max(11, Math.min(18, CELL));
+      const W = LEFT + weeks.length * (CELL + GAP);
+      const H = TOP + 7 * (CELL + GAP) + 4;
+      const svg = svgEl("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}` });
+
+      DAYS.forEach((d, i) => {
+        if (!d) return;
+        const t = svgEl("text", {
+          x: 0, y: TOP + i * (CELL + GAP) + CELL - 2,
+          fill: "#4a5662", "font-size": 9, "font-family": "Spline Sans Mono, monospace",
+        });
+        t.textContent = d;
+        svg.appendChild(t);
+      });
+
+      let lastMonth = -1;
+      weeks.forEach((wk, wi) => {
+        const first = wk.find(Boolean);
+        if (first) {
+          const m = new Date(first.date + "T00:00:00Z").getUTCMonth();
+          if (m !== lastMonth) {
+            lastMonth = m;
+            const t = svgEl("text", {
+              x: LEFT + wi * (CELL + GAP), y: 10,
+              fill: "#4a5662", "font-size": 9, "font-family": "Spline Sans Mono, monospace",
+            });
+            t.textContent = MONTHS[m];
+            svg.appendChild(t);
+          }
+        }
+        wk.forEach((day, di) => {
+          if (!day) return;
+          const r = svgEl("rect", {
+            x: LEFT + wi * (CELL + GAP), y: TOP + di * (CELL + GAP),
+            width: CELL, height: CELL, rx: 2.5, fill: level(day.count),
+          });
+          const title = svgEl("title", {});
+          title.textContent = `${day.date}: ${day.count} contribution${day.count === 1 ? "" : "s"}`;
+          r.appendChild(title);
+          svg.appendChild(r);
+        });
+      });
+
+      host.appendChild(svg);
+      host.scrollLeft = host.scrollWidth; // most recent weeks visible first (when scrolling)
+    }
+
+    draw();
+    let rt;
+    addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(draw, 200); });
   }
 
   /* ---------- languages ---------- */
