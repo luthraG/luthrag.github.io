@@ -5,7 +5,8 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 
-  document.getElementById("yr").textContent = new Date().getFullYear();
+  const yrEl = document.getElementById("yr");
+  if (yrEl) yrEl.textContent = new Date().getFullYear();
 
   /* ---------- mobile nav ---------- */
   const burger = $(".nav-burger");
@@ -153,12 +154,14 @@
     : n >= 1e3 ? (n / 1e3).toFixed(1).replace(/\.0$/, "") + "k"
     : String(n);
 
-  fetch("data/stats.json")
-    .then((r) => r.json())
-    .then(renderStats)
-    .catch(() => {
-      $("#stats-stamp").textContent = "// stats temporarily unavailable";
-    });
+  if (document.getElementById("stats-stamp")) {
+    fetch("data/stats.json")
+      .then((r) => r.json())
+      .then(renderStats)
+      .catch(() => {
+        $("#stats-stamp").textContent = "// stats temporarily unavailable";
+      });
+  }
 
   function renderStats(s) {
     /* stat tiles */

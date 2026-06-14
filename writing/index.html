@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writing — Gaurav Luthra</title>
+<meta name="description" content="Engineering writing by Gaurav Luthra — deep dives on distributed systems, observability, performance and data platforms.">
+<meta property="og:title" content="Writing — Gaurav Luthra">
+<meta property="og:description" content="Deep dives on distributed systems, observability, performance and data platforms.">
+<meta property="og:url" content="https://luthrag.github.io/writing/">
+<meta property="og:type" content="website">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Spline+Sans+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/writing.css">
+</head>
+<body>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow bg-glow-1" aria-hidden="true"></div>
+
+<header class="nav">
+  <a class="nav-logo" href="../">gl<span class="accent">@</span>luthra<span class="cursor-blink">_</span></a>
+  <nav class="nav-links">
+    <a href="../#experience">experience</a>
+    <a href="../#work">work</a>
+    <a href="./" class="active">writing</a>
+    <a href="../#consulting">consulting</a>
+    <a href="../#honors">honors</a>
+    <a href="../#contact" class="nav-cta">contact</a>
+  </nav>
+  <button class="nav-burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+</header>
+
+<main class="article-wrap">
+  <header class="writing-head">
+    <h1>Writing</h1>
+    <p>Notes from building backend and data systems that have to stay fast under
+       real load — distributed systems, observability, performance, and the math
+       that makes them work.</p>
+  </header>
+
+  <ul class="post-list">
+    <li>
+      <a href="anomaly-detection-at-nanosecond-cost.html">
+        <span class="post-date">2026 · 06</span>
+        <div class="post-meta">
+          <h2>Anomaly Detection for Alerting, at Nanosecond Cost</h2>
+          <p>How to take metric anomaly detection from 200ms per evaluation (and a
+             hard ceiling of ~10 alerts) to 8.5 nanoseconds and 100k+ timeseries —
+             by moving every expensive thing out of the hot path.</p>
+          <div class="post-tags"><span>observability</span><span>time series</span><span>performance</span><span>statistics</span></div>
+        </div>
+      </a>
+    </li>
+  </ul>
+</main>
+
+<script src="../js/main.js" defer></script>
+</body>
+</html>

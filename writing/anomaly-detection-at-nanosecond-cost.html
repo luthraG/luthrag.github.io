@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anomaly Detection for Alerting, at Nanosecond Cost — Gaurav Luthra</title>
+<meta name="description" content="How to take metric anomaly detection from 200ms per evaluation to 8.5 nanoseconds and 100k+ timeseries by moving every expensive thing out of the hot path. Seasonal baselines, median + MAD, and zero-allocation scoring.">
+<meta property="og:title" content="Anomaly Detection for Alerting, at Nanosecond Cost">
+<meta property="og:description" content="From 200ms per evaluation to 8.5 nanoseconds: seasonal baselines, robust statistics, and a zero-allocation hot path.">
+<meta property="og:image" content="https://luthrag.github.io/assets/gaurav.webp">
+<meta property="og:url" content="https://luthrag.github.io/writing/anomaly-detection-at-nanosecond-cost.html">
+<meta property="og:type" content="article">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Spline+Sans+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/writing.css">
+</head>
+<body>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow bg-glow-1" aria-hidden="true"></div>
+
+<header class="nav">
+  <a class="nav-logo" href="../">gl<span class="accent">@</span>luthra<span class="cursor-blink">_</span></a>
+  <nav class="nav-links">
+    <a href="../#experience">experience</a>
+    <a href="../#work">work</a>
+    <a href="./" class="active">writing</a>
+    <a href="../#consulting">consulting</a>
+    <a href="../#honors">honors</a>
+    <a href="../#contact" class="nav-cta">contact</a>
+  </nav>
+  <button class="nav-burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+</header>
+
+<main class="article-wrap">
+  <article class="article">
+    <a class="article-back" href="./">← all writing</a>
+    <p class="article-meta">June 2026 · <span class="accent">~9 min read</span> · observability</p>
+    <h1>Anomaly Detection for Alerting, at Nanosecond Cost</h1>
+    <p class="article-dek">A static threshold can't tell a Tuesday-afternoon traffic peak
+       from an outage. Anomaly detection can — but the obvious way to build it melts your
+       CPU at ten alerts. Here is how to get it to 8.5 nanoseconds per evaluation and
+       100,000+ timeseries, by refusing to do real work in the hot path.</p>
+    <div class="article-tags"><span>observability</span><span>time series</span><span>robust statistics</span><span>Go</span><span>performance</span></div>
+
+    <div class="prose">
+
+      <p>Every alerting system starts with static thresholds: page me when CPU goes over
+         80%, when error rate crosses 2%. They are simple and they are wrong about half
+         the time. Real traffic is <em>seasonal</em> — quiet at 4am, busy at 2pm, different
+         on weekends. A threshold tuned for the night fires all afternoon; one tuned for
+         the afternoon sleeps through a 3am incident. You end up either drowning in false
+         pages or missing the real ones.</p>
+
+      <p>The fix everyone reaches for is anomaly detection: instead of a fixed line, learn
+         what "normal" looks like for <em>this</em> metric at <em>this</em> time of week,
+         and alert when reality strays too far. The idea is right. The naive implementation
+         is what gets you in trouble.</p>
+
+      <h2><span class="h2-no">01</span> The trap: doing the work in the hot path</h2>
+
+      <p>The straightforward design computes the baseline on demand. Every time the alert
+         rule evaluates — typically every 15 to 60 seconds, per timeseries — it pulls a few
+         weeks of history from the metrics store, crunches a baseline and a spread, and
+         compares the latest point against it.</p>
+
+      <figure class="diagram" data-diagram="hot-path">
+        <figcaption>Naive design: each evaluation fans out several history queries to the time-series store, every tick, uncached.</figcaption>
+      </figure>
+
+      <p>It works beautifully in a demo with three alerts. Then it meets production. Each
+         evaluation becomes four or more queries against the time-series database, fetching
+         and re-aggregating weeks of data that barely changed since the last tick. Nothing
+         is cached, because "the latest window" is always slightly different. CPU climbs
+         linearly with the number of alerts and saturates somewhere around <strong>seven to
+         ten timeseries</strong>. For a platform that needs to watch tens of thousands, that
+         is a non-starter.</p>
+
+      <div class="callout">
+        <p><strong>The core mistake</strong> is putting expensive, repeated work on the
+           latency-critical path. The fix is almost always the same shape: precompute the
+           expensive part out of band, and leave the hot path doing nothing but arithmetic.</p>
+      </div>
+
+      <h2><span class="h2-no">02</span> Split training from scoring</h2>
+
+      <p>So separate the two jobs. <strong>Training</strong> — turning weeks of raw history
+         into a compact model — is expensive but rarely needs to be fresh to the second. Run
+         it in the background, on a schedule. <strong>Scoring</strong> — deciding whether the
+         current point is anomalous — has to be instant, but if the model is already built,
+         scoring is just a subtraction and a divide.</p>
+
+      <p>Once you frame it this way, the evaluation hot path stops talking to the database
+         entirely. It reads a small precomputed model from memory and does a few floating-point
+         operations. The expensive query load doesn't grow with your alert count, because the
+         alert count no longer drives queries at all.</p>
+
+      <h2><span class="h2-no">03</span> A model shaped like the week</h2>
+
+      <p>What should the model actually be? Seasonality is the whole point, so the model is
+         indexed by position in the week. Bucket time into a grid: seven days, and within each
+         day, 288 five-minute slots. That's 2,016 buckets covering every five-minute window of
+         a typical week. Each bucket stores what "normal" looked like for that slot, learned
+         across however many weeks of history you keep.</p>
+
+      <figure class="diagram" data-diagram="seasonal">
+        <figcaption>A timestamp maps to one (day-of-week, time-of-day) bucket; each bucket carries a learned center and spread.</figcaption>
+      </figure>
+
+      <p>Scoring a point becomes: find its bucket from the timestamp, read the bucket's center
+         and spread, and ask how far out the point is. The lookup is an array index. No search,
+         no allocation, no I/O.</p>
+
+      <h2><span class="h2-no">04</span> Why median and MAD, not mean and standard deviation</h2>
+
+      <p>Here is the subtle part, and the part most home-grown detectors get wrong. The
+         intuitive choice for "center" and "spread" is the mean and the standard deviation.
+         But think about what's in your training data: it includes the very incidents and
+         spikes you are trying to detect. The mean gets dragged toward outliers, and standard
+         deviation gets dragged <em>even harder</em> — it squares the distances. Train on data
+         containing a spike and your "normal" band quietly inflates to include the spike. The
+         detector learns to ignore exactly what it was built to catch.</p>
+
+      <p>The robust alternative is the <strong>median</strong> for the center and the
+         <strong>median absolute deviation</strong> (MAD) for the spread:</p>
+
+      <pre><code><span class="cm"># center and spread that ignore outliers</span>
+center = median(values)
+MAD    = median(|value - center|  for value in values)
+
+<span class="cm"># robust z-score: how many MADs from the center?</span>
+score  = |x - center| / MAD</code></pre>
+
+      <p>The median doesn't move when you add a few extreme values; neither does the MAD. You
+         can drop a 10x spike into the training window and the learned band barely flinches.
+         The score is a robust analogue of the z-score — "how many typical deviations away is
+         this point" — and you alert when it exceeds some sensitivity <code>k</code>.</p>
+
+      <h2><span class="h2-no">05</span> See it move</h2>
+
+      <p>The band around the baseline is <code>center ± k·MAD</code>. The sensitivity
+         <code>k</code> is the one knob that matters: small <code>k</code> means a tight band
+         and a twitchy detector; large <code>k</code> means a forgiving band that only fires on
+         the dramatic stuff. Drag it and watch points cross the line. Inject a spike and watch
+         a robust band refuse to be impressed.</p>
+
+      <figure class="widget" data-widget="anomaly-band">
+        <div class="widget-head">
+          <h3>Anomaly band — one day of a metric</h3>
+          <span class="widget-readout" data-readout></span>
+        </div>
+        <svg data-band-svg viewBox="0 0 680 280" width="680" height="280" role="img" aria-label="Interactive anomaly band chart"></svg>
+        <div class="widget-controls">
+          <div class="ctrl">
+            <label>sensitivity &nbsp;<code>k</code><b data-k-val>3.0</b></label>
+            <input type="range" data-k min="1" max="6" step="0.1" value="3">
+          </div>
+          <button class="widget-btn" data-spike>+ inject a spike</button>
+        </div>
+      </figure>
+
+      <p>Notice the band is wider in the busy part of the day and tighter at night — because
+         the spread is learned <em>per bucket</em>, the detector is automatically more tolerant
+         when the metric is naturally noisier, and stricter when it's calm. A fixed threshold
+         can't do that.</p>
+
+      <h2><span class="h2-no">06</span> The hot path is just arithmetic</h2>
+
+      <p>With the model precomputed, scoring at evaluation time is a handful of operations and
+         <strong>zero allocations</strong> — no garbage for the collector to chase, no syscalls,
+         no network:</p>
+
+      <pre><code><span class="kw">func</span> (m *Model) Score(ts <span class="kw">int64</span>, x <span class="kw">float64</span>) <span class="kw">float64</span> {
+    b := m.bucket[bucketIndex(ts)] <span class="cm">// array index — O(1)</span>
+    <span class="kw">if</span> b.mad == <span class="nm">0</span> {
+        <span class="kw">return</span> <span class="nm">0</span> <span class="cm">// flat history, nothing to flag</span>
+    }
+    <span class="kw">return</span> math.Abs(x-b.center) / b.mad <span class="cm">// robust z-score</span>
+}</code></pre>
+
+      <p>This is the move that buys the orders of magnitude. Scoring a point drops from roughly
+         <strong>200 milliseconds</strong> (four network round-trips and a re-aggregation) to
+         about <strong>8.5 nanoseconds</strong>. Rendering a 24-hour band for a chart — 288
+         points — goes from tens of seconds of repeated queries to microseconds of arithmetic,
+         because every point is read from the same in-memory model.</p>
+
+      <h2><span class="h2-no">07</span> Keeping the model fresh without a stampede</h2>
+
+      <p>A precomputed model is stale the moment you build it, so it needs refreshing — but you
+         can't have every rule retraining at once, or you've just recreated the query stampede
+         on a timer. Two techniques keep it cheap:</p>
+
+      <ul>
+        <li><strong>Piggybacked incremental updates.</strong> Every evaluation already has the
+            latest data point in hand. Fold it into the bucket's running statistics right there,
+            for free, so the model drifts along with reality between full retrains. Streaming
+            estimators (Welford's algorithm for running moments, bounded approximations for the
+            robust statistics) make this O(1) per point.</li>
+        <li><strong>Staggered retraining.</strong> Spread full rebuilds across the schedule with
+            something like <code>(rule_id + day_of_epoch) % N</code>, so each rule retrains on its
+            own rotating day. The heavy historical fetch is amortized instead of synchronized —
+            no thundering herd.</li>
+      </ul>
+
+      <p>New alerts get a one-off model trained inside the request so they have a usable band
+         immediately, rather than waiting for the next background cycle.</p>
+
+      <h2><span class="h2-no">08</span> The lesson</h2>
+
+      <div class="lead-stat">
+        <div><dt>200ms → 8.5ns</dt><dd>per evaluation</dd></div>
+        <div><dt>~10 → 100k+</dt><dd>timeseries watched</dd></div>
+        <div><dt>0</dt><dd>queries added per alert</dd></div>
+      </div>
+
+      <p>None of the individual pieces are exotic — seasonal bucketing, robust statistics,
+         streaming updates, and a background job are all standard tools. The leverage came
+         entirely from <em>where</em> the work happens. The naive design and the fast one
+         compute almost the same numbers; one does it on the latency-critical path under a
+         per-alert multiplier, the other does it once, in the background, and leaves the hot
+         path doing arithmetic on data that's already in memory.</p>
+
+      <p>That's the reusable idea, and it long outlives this particular system: <strong>find
+         the expensive thing on your hot path, and ask whether it can be precomputed.</strong>
+         Most of the time, it can.</p>
+
+      <div class="article-foot">
+        <p>Building something in this space and want a second pair of hands?
+           <a class="accent" href="mailto:luthra.zenith@gmail.com">luthra.zenith@gmail.com</a></p>
+        <a class="article-back" href="./">← all writing</a>
+      </div>
+
+    </div>
+  </article>
+</main>
+
+<script src="../js/rough.js"></script>
+<script src="../js/diagrams.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>
