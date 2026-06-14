@@ -1,0 +1,12 @@
+[
+  {
+    "title": "Anomaly Detection for Alerting, at Nanosecond Cost",
+    "file": "anomaly-detection-at-nanosecond-cost.html",
+    "date": "2026 · 06",
+    "year": "2026",
+    "topic": "observability",
+    "blurb": "How to take metric anomaly detection from 200ms per evaluation to 8.5 nanoseconds and 100k+ timeseries, by moving every expensive thing out of the hot path.",
+    "blurbHome": "How to take metric anomaly detection from 200ms per evaluation to 8.5 nanoseconds and 100k+ timeseries, by moving every expensive thing out of the hot path. With hand-drawn diagrams and an interactive anomaly-band you can drag.",
+    "tags": ["observability", "time series", "performance", "statistics"]
+  }
+]

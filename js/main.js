@@ -22,6 +22,38 @@
     }
   });
 
+  /* ---------- writing lists from posts.json (single source of truth) ----------
+     Progressive enhancement: the HTML ships a hardcoded fallback post; if
+     posts.json loads, we re-render from it. Homepage shows only the latest
+     (capped, so it never grows); the writing index shows all. */
+  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  const featureCard = (p, base) =>
+    `<a class="writing-feature" href="${base}${esc(p.file)}">` +
+    `<span class="wf-meta">latest · ${esc(p.year)} · ${esc(p.topic)}</span>` +
+    `<h3>${esc(p.title)}</h3>` +
+    `<p>${esc(p.blurbHome || p.blurb)}</p>` +
+    `<span class="wf-cta">Read the article →</span></a>`;
+  const postRow = (p, base) =>
+    `<li><a href="${base}${esc(p.file)}">` +
+    `<span class="post-date">${esc(p.date)}</span>` +
+    `<div class="post-meta"><h2>${esc(p.title)}</h2><p>${esc(p.blurb)}</p>` +
+    `<div class="post-tags">${(p.tags || []).map((t) => `<span>${esc(t)}</span>`).join("")}</div>` +
+    `</div></a></li>`;
+  const wEl = document.querySelector("[data-writing]");
+  if (wEl) {
+    fetch(wEl.dataset.src)
+      .then((r) => r.json())
+      .then((posts) => {
+        if (!Array.isArray(posts) || !posts.length) return; // keep fallback
+        const base = wEl.dataset.base || "";
+        wEl.innerHTML =
+          wEl.dataset.writing === "home"
+            ? featureCard(posts[0], base)
+            : posts.map((p) => postRow(p, base)).join("");
+      })
+      .catch(() => {}); // network/parse error: keep the hardcoded fallback
+  }
+
   /* ---------- scroll-spy nav ---------- */
   const spyLinks = $$('.nav-links a[href^="#"]').filter((a) => a.hash.length > 1);
   const spyTargets = spyLinks
