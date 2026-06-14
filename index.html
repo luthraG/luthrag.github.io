@@ -27,7 +27,7 @@
   <nav class="nav-links">
     <a href="#experience">experience</a>
     <a href="#work">work</a>
-    <a href="writing/">writing</a>
+    <a href="#writing">writing</a>
     <a href="#activity">activity</a>
     <a href="#consulting">consulting</a>
     <a href="#honors">honors</a>
@@ -50,8 +50,8 @@
       <p class="hero-lede reveal">I architect backend systems that serve millions of users -
         and stay fast under load.</p>
       <p class="hero-blurb reveal">15+ years across distributed systems, cloud platforms and
-        ML-powered products. Patented at Adobe, scaled Zippia's platform, now building
-        next-generation observability tooling.</p>
+        ML-powered products. Patented work in content sync, a platform scaled to millions
+        of users, now building next-generation observability tooling.</p>
       <div class="hero-ctas reveal">
         <a class="btn btn-primary" href="mailto:luthra.zenith@gmail.com">Get in touch</a>
         <a class="btn btn-icon" href="https://github.com/luthraG" target="_blank" rel="noopener" aria-label="GitHub">
@@ -102,37 +102,36 @@
 
     <ol class="timeline">
       <li class="reveal">
-        <div class="tl-meta"><span class="tl-date">2026 - present</span><span class="tl-loc">India · remote</span></div>
         <div class="tl-body">
           <h3>Founder &amp; Director · <span class="tl-co">Yuvanya Systems</span></h3>
-          <p>Technology company with deep expertise across the software engineering lifecycle -
-             backend architecture, cloud &amp; DevOps, data engineering and ML integrations.</p>
+          <p>Technology company delivering across the full software-engineering lifecycle -
+             backend architecture, cloud &amp; DevOps, data engineering and ML integrations.
+             Current focus is next-generation observability: self-training anomaly detection,
+             continuous profiling, and telemetry query tooling.</p>
+          <p class="tl-tags"><span>Go</span><span>observability</span><span>distributed systems</span><span>LLM / RAG</span></p>
         </div>
       </li>
       <li class="reveal">
-        <div class="tl-meta"><span class="tl-date">2016 - present</span><span class="tl-loc">San Francisco · remote</span></div>
         <div class="tl-body">
           <h3>Distinguished Engineer · <span class="tl-co">Zippia</span></h3>
           <p class="tl-track">Lead Computer Scientist → Senior Computer Architect → Distinguished Engineer</p>
-          <p>Drive technical strategy for a job platform serving millions of users. Led the
+          <p>Drove technical strategy for a job platform serving millions of users. Led the
              cloud-native migration to GCP (28% lower infrastructure spend), architected the
              ML-powered recommendation engine over 7M+ listings (+40% relevance), decomposed
              the platform into 10+ microservices (30% faster deployments, 40% lower p95
              latency), and hardened the edge with bot detection and attack mitigation.
-             Mentor a team of 10 engineers.</p>
+             Mentored a team of 10 engineers.</p>
           <p class="tl-tags"><span>Node.js</span><span>Python</span><span>GCP</span><span>Kubernetes</span><span>Elasticsearch</span><span>MongoDB</span><span>Redis</span><span>Nginx</span></p>
         </div>
       </li>
       <li class="reveal">
-        <div class="tl-meta"><span class="tl-date">2017</span><span class="tl-loc">Hyderabad · freelance</span></div>
         <div class="tl-body">
           <h3>Backend Engineer · <span class="tl-co">Motofix</span></h3>
           <p>Designed and shipped the complete backend platform - data model, REST APIs and
-             deployment - for a Hyderabad-based vehicle-services startup.</p>
+             deployment - for a vehicle-services startup.</p>
         </div>
       </li>
       <li class="reveal">
-        <div class="tl-meta"><span class="tl-date">2015 - 2016</span><span class="tl-loc">New Delhi</span></div>
         <div class="tl-body">
           <h3>Lead Software Engineer · <span class="tl-co">Armor5</span> <span class="tl-note">acquired by Digital Guardian</span></h3>
           <p>Engineered the reverse-proxy core's client-server architecture (25% faster
@@ -142,7 +141,6 @@
         </div>
       </li>
       <li class="reveal">
-        <div class="tl-meta"><span class="tl-date">2012 - 2015</span><span class="tl-loc">Bangalore</span></div>
         <div class="tl-body">
           <h3>Software Engineer 2 · <span class="tl-co">Adobe</span></h3>
           <p>Invented and patented the audio-fingerprint content-sync algorithm behind Adobe
@@ -152,7 +150,6 @@
         </div>
       </li>
       <li class="reveal">
-        <div class="tl-meta"><span class="tl-date">2011 - 2012</span><span class="tl-loc">New Delhi</span></div>
         <div class="tl-body">
           <h3>Software Engineer · <span class="tl-co">Newgen Software</span></h3>
           <p>Built a C#/.NET layout engine for high-volume PDF generation (+30% document
@@ -246,9 +243,25 @@
     </div>
   </section>
 
+  <!-- ============ WRITING ============ -->
+  <section class="section" id="writing">
+    <h2 class="section-title reveal"><span class="section-no">// 03</span> Writing</h2>
+    <p class="section-sub reveal">Deep dives on the systems I build - distributed systems, observability,
+       performance, and the math behind them.</p>
+    <a class="writing-feature reveal" href="writing/anomaly-detection-at-nanosecond-cost.html">
+      <span class="wf-meta">latest · 2026 · observability</span>
+      <h3>Anomaly Detection for Alerting, at Nanosecond Cost</h3>
+      <p>How to take metric anomaly detection from 200ms per evaluation to 8.5 nanoseconds
+         and 100k+ timeseries, by moving every expensive thing out of the hot path. With
+         hand-drawn diagrams and an interactive anomaly-band you can drag.</p>
+      <span class="wf-cta">Read the article →</span>
+    </a>
+    <a class="writing-all reveal" href="writing/">All writing →</a>
+  </section>
+
   <!-- ============ GITHUB ACTIVITY ============ -->
   <section class="section" id="activity">
-    <h2 class="section-title reveal"><span class="section-no">// 03</span> Shipping, measured</h2>
+    <h2 class="section-title reveal"><span class="section-no">// 04</span> Shipping, measured</h2>
     <p class="section-sub reveal">Live from the GitHub API - refreshed weekly by a scheduled workflow.</p>
 
     <div class="stat-tiles reveal">
@@ -288,7 +301,7 @@
   <section class="section" id="consulting">
     <div class="consult reveal">
       <div class="consult-text">
-        <h2><span class="section-no">// 04</span> Yuvanya Systems</h2>
+        <h2><span class="section-no">// 05</span> Yuvanya Systems</h2>
         <p class="consult-lede">I take on consulting engagements through my company -
           hands-on architecture and delivery, not slideware.</p>
         <ul class="consult-services">
@@ -312,7 +325,7 @@
 
   <!-- ============ HONORS ============ -->
   <section class="section" id="honors">
-    <h2 class="section-title reveal"><span class="section-no">// 05</span> Patents, awards &amp; research</h2>
+    <h2 class="section-title reveal"><span class="section-no">// 06</span> Patents, awards &amp; research</h2>
     <div class="honors">
       <a class="honor reveal" href="https://patents.google.com/patent/US9392144B2" target="_blank" rel="noopener">
         <span class="honor-kind">us patent · granted</span>

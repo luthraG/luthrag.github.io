@@ -27,20 +27,26 @@
   const spyTargets = spyLinks
     .map((a) => document.getElementById(a.hash.slice(1)))
     .filter(Boolean);
+  let activeId = "";
+  function setActive(id) {
+    if (id === activeId) return;
+    activeId = id;
+    spyLinks.forEach((a) => a.classList.toggle("active", a.hash === "#" + id));
+    // reflect the current section in the URL without adding history or jumping
+    if (id) history.replaceState(null, "", "#" + id);
+    else history.replaceState(null, "", location.pathname + location.search);
+  }
   const spy = new IntersectionObserver(
     (entries) => {
       for (const e of entries) {
-        if (!e.isIntersecting) continue;
-        spyLinks.forEach((a) =>
-          a.classList.toggle("active", a.hash === "#" + e.target.id)
-        );
+        if (e.isIntersecting) setActive(e.target.id);
       }
     },
     { rootMargin: "-30% 0px -60% 0px" }
   );
   spyTargets.forEach((t) => spy.observe(t));
   addEventListener("scroll", () => {
-    if (scrollY < 200) spyLinks.forEach((a) => a.classList.remove("active"));
+    if (scrollY < 200) setActive("");
   }, { passive: true });
 
   /* ---------- scroll reveals ---------- */

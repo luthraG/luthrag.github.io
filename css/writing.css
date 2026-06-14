@@ -1,5 +1,5 @@
 /* ============================================================
-   Writing / article pages — extends css/style.css tokens
+   Writing / article pages - extends css/style.css tokens
    ============================================================ */
 
 .article-wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
@@ -35,6 +35,11 @@
   display: inline-block; margin-bottom: 28px;
 }
 .article-back:hover { color: var(--accent); text-decoration: none; }
+.crumb { font-family: var(--font-mono); font-size: 13px; color: var(--faint); margin-bottom: 26px; }
+.crumb a { color: var(--muted); }
+.crumb a:hover { color: var(--accent); text-decoration: none; }
+.crumb span { margin: 0 8px; color: var(--faint); }
+.writing-head .crumb { margin-bottom: 16px; }
 .article-meta { font-family: var(--font-mono); font-size: 12.5px; color: var(--faint); margin-bottom: 14px; }
 .article-meta .accent { color: var(--accent); }
 .article h1 {
