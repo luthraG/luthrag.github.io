@@ -139,7 +139,7 @@ main { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
 }
 .hero-name {
   font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(54px, 9vw, 104px); line-height: 0.96;
+  font-size: clamp(42px, 9vw, 104px); line-height: 0.96;
   letter-spacing: -0.02em; margin-bottom: 22px;
   background: linear-gradient(135deg, #ffffff 30%, #9fb3c2);
   -webkit-background-clip: text; background-clip: text; color: transparent;
@@ -147,6 +147,7 @@ main { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
 /* per-letter spans for the typewriter + cursor-reactive hero name; each letter
    carries the gradient itself so it stays visible (background-clip on a parent
    does not fill child inline-blocks) */
+.hero-name .hn-line { display: block; white-space: nowrap; }
 .hero-name .ltr {
   display: inline-block; will-change: transform;
   background: linear-gradient(135deg, #ffffff 30%, #9fb3c2);

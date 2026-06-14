@@ -27,11 +27,17 @@
     s.textContent = ch;
     return s;
   }
+  function makeLine(text, letters) {
+    const ln = document.createElement("span");
+    ln.className = "hn-line"; // display:block + white-space:nowrap -> never breaks mid-word
+    [...text].forEach((c) => { const s = letterSpan(c); ln.appendChild(s); letters.push(s); });
+    return ln;
+  }
   function buildStatic() {
     el.textContent = "";
     const letters = [];
-    [...L1].forEach((c) => { const s = letterSpan(c); el.appendChild(s); letters.push(s); });
-    if (L2) { el.appendChild(document.createElement("br")); [...L2].forEach((c) => { const s = letterSpan(c); el.appendChild(s); letters.push(s); }); }
+    el.appendChild(makeLine(L1, letters));
+    if (L2) el.appendChild(makeLine(L2, letters));
     return letters;
   }
 
@@ -73,17 +79,21 @@
   /* ----- typewriter, then hand off to cursor ----- */
   function typeThenCursor() {
     el.textContent = "";
-    const caret = document.createElement("span");
-    caret.className = "caret";
-    el.appendChild(caret);
-    const seq = [...L1, "\n", ...L2];
+    const line1 = document.createElement("span"); line1.className = "hn-line";
+    const line2 = document.createElement("span"); line2.className = "hn-line";
+    el.appendChild(line1); el.appendChild(line2);
+    const caret = document.createElement("span"); caret.className = "caret";
+    line1.appendChild(caret);
+    const c1 = [...L1], c2 = [...L2], total = c1.length + c2.length;
     const letters = [];
     let i = 0;
     const id = setInterval(() => {
-      const ch = seq[i];
-      if (ch === "\n") el.insertBefore(document.createElement("br"), caret);
-      else { const s = letterSpan(ch); el.insertBefore(s, caret); letters.push(s); }
-      if (++i >= seq.length) {
+      if (i < c1.length) { const s = letterSpan(c1[i]); line1.insertBefore(s, caret); letters.push(s); }
+      else {
+        if (caret.parentNode !== line2) line2.appendChild(caret);
+        const s = letterSpan(c2[i - c1.length]); line2.insertBefore(s, caret); letters.push(s);
+      }
+      if (++i >= total) {
         clearInterval(id);
         setTimeout(() => { caret.remove(); enableCursor(letters); }, 650);
       }
