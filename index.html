@@ -51,7 +51,7 @@
         and stay fast under load.</p>
       <p class="hero-blurb reveal">15+ years across distributed systems, cloud platforms and
         ML-powered products. Patented at Adobe, scaled Zippia's platform, now building
-        next-generation observability for CubeAPM.</p>
+        next-generation observability tooling.</p>
       <div class="hero-ctas reveal">
         <a class="btn btn-primary" href="mailto:luthra.zenith@gmail.com">Get in touch</a>
         <a class="btn btn-icon" href="https://github.com/luthraG" target="_blank" rel="noopener" aria-label="GitHub">
@@ -166,24 +166,25 @@
   <!-- ============ SELECTED WORK ============ -->
   <section class="section" id="work">
     <h2 class="section-title reveal"><span class="section-no">// 02</span> Selected work</h2>
-    <p class="section-sub reveal">Recent platform engineering for <a href="https://cubeapm.com" target="_blank" rel="noopener">CubeAPM</a>, plus career highlights.</p>
+    <p class="section-sub reveal">Recent platform engineering across observability and data systems, plus career highlights.</p>
 
     <div class="cards">
       <article class="card reveal">
-        <div class="card-tag">cubeapm · go</div>
+        <div class="card-tag">observability · go</div>
         <h3>Anomaly Detection Engine</h3>
         <p>Built a self-training anomaly detection engine for alerting: seasonality-aware
            baseline models precomputed out-of-band, with zero-allocation scoring in the
            evaluation hot path - no network I/O at query time.</p>
         <ul class="card-metrics">
           <li><strong>200ms → 8.5ns</strong> score per evaluation</li>
-          <li><strong>7–10 → 100k+</strong> max alert timeseries</li>
+          <li><strong>7-10 → 100k+</strong> max alert timeseries</li>
           <li><strong>Zero-alloc</strong> hot path, fully unit-tested</li>
         </ul>
+        <a class="card-link" href="writing/anomaly-detection-at-nanosecond-cost.html">Read the deep-dive →</a>
       </article>
 
       <article class="card reveal">
-        <div class="card-tag">cubeapm · go + react</div>
+        <div class="card-tag">observability · go + react</div>
         <h3>Continuous Application Profiler</h3>
         <p>Built end-to-end continuous profiling: high-throughput ingest across 8 runtime
            wire formats (Go, JFR, Python, Node, Ruby, .NET, PHP, native), dedicated
@@ -196,11 +197,11 @@
       </article>
 
       <article class="card reveal">
-        <div class="card-tag">cubeapm · language tooling</div>
-        <h3>CQL - Cube Query Language</h3>
-        <p>Designed and built a unified observability query language with a transpiler to
-           the engine's native dialects - one ergonomic syntax across metrics, logs and
-           traces, no raw PromQL/LogsQL required.</p>
+        <div class="card-tag">observability · language tooling</div>
+        <h3>Unified Telemetry Query Language</h3>
+        <p>Designed and built a unified query language with a transpiler to the engine's
+           native dialects - one ergonomic syntax across metrics, logs and traces, no raw
+           PromQL/LogsQL required.</p>
         <ul class="card-metrics">
           <li><strong>Lexer → parser → transpiler</strong>, fully tested</li>
           <li><strong>One syntax</strong> across telemetry signals</li>
