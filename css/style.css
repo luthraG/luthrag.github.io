@@ -144,6 +144,21 @@ main { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
   background: linear-gradient(135deg, #ffffff 30%, #9fb3c2);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
+/* per-letter spans for the typewriter + cursor-reactive hero name; each letter
+   carries the gradient itself so it stays visible (background-clip on a parent
+   does not fill child inline-blocks) */
+.hero-name .ltr {
+  display: inline-block; will-change: transform;
+  background: linear-gradient(135deg, #ffffff 30%, #9fb3c2);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.hero-name .caret {
+  display: inline-block; width: 0.5ch; height: 0.72em; border-radius: 2px;
+  background: var(--accent); -webkit-text-fill-color: initial;
+  transform: translateY(0.05em); margin-left: 8px;
+  animation: blink 1s steps(1) infinite;
+}
 .hero-role { font-size: 19px; margin-bottom: 18px; color: var(--text); }
 .hero-lede { font-size: 19px; line-height: 1.5; color: var(--text); max-width: 520px; margin-bottom: 12px; }
 .hero-blurb { color: var(--muted); max-width: 560px; margin-bottom: 30px; }
