@@ -171,13 +171,17 @@
          a concrete list of tokens to cut. "Our LLM costs are creeping up" stops being a vague worry
          and becomes a flame graph with the expensive frames highlighted.</p>
 
-      <p>llmprof is open source (MIT) and out now. Profile your own context in about a minute:</p>
+      <p>llmprof is open source (MIT) and out now. Want to see it before installing anything?
+         <a class="accent" href="https://luthrag.github.io/llmprof/try/">Try the live dashboard in your browser</a>
+         - the real interface on a recorded session, nothing to set up. Then profile your own
+         context in about a minute:</p>
 
       <pre><code>pipx install llmprof &amp;&amp; llmprof up      <span class="cm"># or, no Python:  npx llmprof up</span></code></pre>
 
       <p>Point a client at the proxy, open <code>localhost:4000</code>, and look at where your
          tokens went. Code and docs:
          <a class="accent" href="https://github.com/luthraG/llmprof">github.com/luthraG/llmprof</a>
+         · <a class="accent" href="https://luthrag.github.io/llmprof/try/">live demo</a>
          · <a class="accent" href="https://luthrag.github.io/llmprof">documentation</a>
          · <a class="accent" href="https://pypi.org/project/llmprof/">PyPI</a>
          · <a class="accent" href="https://www.npmjs.com/package/llmprof">npm</a>.</p>
