@@ -286,8 +286,10 @@
     const resetBtn = root.querySelector("[data-fg-reset]");
     const W = 680, rowH = 30, pad = 6, H = 220;
 
-    // a sampled CPU profile of a request handler (value = samples in subtree)
-    const tree = {
+    // a sampled CPU profile of a request handler (value = samples in subtree).
+    // An article can override this with its own tree via a <script data-fg-tree>
+    // JSON block plus data-fg-unit / data-fg-noun labels (e.g. a token profile).
+    const defaultTree = {
       name: "http.Serve", value: 1000, children: [
         { name: "router.Match", value: 60 },
         { name: "Handler.ServeHTTP", value: 910, children: [
@@ -307,6 +309,13 @@
         { name: "mw.Log", value: 30 },
       ],
     };
+    let tree = defaultTree;
+    const treeSrc = root.querySelector("[data-fg-tree]");
+    if (treeSrc) {
+      try { tree = JSON.parse(treeSrc.textContent); } catch (e) { tree = defaultTree; }
+    }
+    const unit = root.dataset.fgUnit || "CPU";   // shown as "% of <unit>"
+    const noun = root.dataset.fgNoun || "samples"; // shown as "<value> <noun>"
     const TOTAL = tree.value;
     const palette = ["#3ddc97", "#36c6b0", "#2ea8c9", "#5b8def", "#f0b429", "#e8895a", "#9b8bd6", "#4db6a0"];
     const colorOf = (name) => {
@@ -354,7 +363,7 @@
         g.addEventListener("mouseenter", () => {
           rect.setAttribute("stroke", "#e7f4ee");
           rect.setAttribute("stroke-width", "1.5");
-          readout.innerHTML = `<b>${node.name}</b> · ${node.value} samples · ${pct}% of CPU`;
+          readout.innerHTML = `<b>${node.name}</b> · ${node.value.toLocaleString()} ${noun} · ${pct}% of ${unit}`;
         });
         g.addEventListener("mouseleave", () => {
           rect.removeAttribute("stroke");

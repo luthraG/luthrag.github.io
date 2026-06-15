@@ -1,5 +1,15 @@
 [
   {
+    "title": "Where Your LLM Tokens Actually Go",
+    "file": "where-your-llm-tokens-go.html",
+    "date": "2026 · 06",
+    "year": "2026",
+    "topic": "llm observability",
+    "blurb": "You profile CPU and memory. The context window is the most expensive resource in an AI app and almost nobody profiles it. How llmprof flame-graphs every request's tokens, prices the call offline for 1000+ models, and finds the dollars you can reclaim - all locally.",
+    "blurbHome": "You profile CPU and memory. The context window is the most expensive resource in an AI app and almost nobody profiles it. I built llmprof - pprof for your LLM context: a local proxy that flame-graphs every request's tokens (interactive - click to zoom), prices the call, and tells you what to cut.",
+    "tags": ["llm", "observability", "flame graphs", "cost", "tokens"]
+  },
+  {
     "title": "Continuous Profiling: Finding Where the CPU Actually Goes",
     "file": "continuous-profiling.html",
     "date": "2026 · 06",

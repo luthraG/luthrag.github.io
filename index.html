@@ -249,12 +249,13 @@
     <p class="section-sub reveal">Deep dives on the systems I build - distributed systems, observability,
        performance, and the math behind them.</p>
     <div class="reveal" data-writing="home" data-src="writing/posts.json" data-base="writing/">
-      <a class="writing-feature" href="writing/anomaly-detection-at-nanosecond-cost.html">
-        <span class="wf-meta">latest · 2026 · observability</span>
-        <h3>Anomaly Detection for Alerting, at Nanosecond Cost</h3>
-        <p>How to take metric anomaly detection from 200ms per evaluation to 8.5 nanoseconds
-           and 100k+ timeseries, by moving every expensive thing out of the hot path. With
-           hand-drawn diagrams and an interactive anomaly-band you can drag.</p>
+      <a class="writing-feature" href="writing/where-your-llm-tokens-go.html">
+        <span class="wf-meta">latest · 2026 · llm observability</span>
+        <h3>Where Your LLM Tokens Actually Go</h3>
+        <p>You profile CPU and memory. The context window is the most expensive resource in an
+           AI app and almost nobody profiles it. I built llmprof - pprof for your LLM context: a
+           local proxy that flame-graphs every request's tokens (interactive - click to zoom),
+           prices the call, and tells you what to cut.</p>
         <span class="wf-cta">Read the article →</span>
       </a>
     </div>

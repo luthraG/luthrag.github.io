@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Where Your LLM Tokens Actually Go - Gaurav Luthra</title>
+<meta name="description" content="You profile CPU and memory. The context window is the most expensive resource in an AI app and almost nobody profiles it. llmprof is pprof for your LLM context: a local proxy that flame-graphs every request's tokens, prices the call, and tells you what to cut.">
+<meta property="og:title" content="Where Your LLM Tokens Actually Go">
+<meta property="og:description" content="A flame graph for your context window. How llmprof attributes every token (system prompt vs tool schemas vs history), prices the call offline for 1000+ models, and finds the dollars you can reclaim - all locally.">
+<meta property="og:image" content="https://luthrag.github.io/assets/gaurav.webp">
+<meta property="og:url" content="https://luthrag.github.io/writing/where-your-llm-tokens-go.html">
+<meta property="og:type" content="article">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Spline+Sans+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/writing.css">
+</head>
+<body>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow bg-glow-1" aria-hidden="true"></div>
+
+<header class="nav">
+  <a class="nav-logo" href="../">gl<span class="accent">@</span>luthra<span class="cursor-blink">_</span></a>
+  <nav class="nav-links">
+    <a href="../#experience">experience</a>
+    <a href="../#work">work</a>
+    <a href="./" class="active">writing</a>
+    <a href="../#consulting">consulting</a>
+    <a href="../#honors">honors</a>
+    <a href="../#contact" class="nav-cta">contact</a>
+  </nav>
+  <button class="nav-burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+</header>
+
+<main class="article-wrap">
+  <article class="article">
+    <p class="crumb"><a href="../">home</a><span>/</span><a href="./">writing</a></p>
+    <p class="article-meta">June 2026 · <span class="accent">~6 min read</span> · llm observability</p>
+    <h1>Where Your LLM Tokens Actually Go</h1>
+    <p class="article-dek">You profile CPU and memory as a reflex. The context window is the most
+       expensive resource in an AI app, and almost nobody profiles it. So I built
+       <strong>llmprof</strong> - pprof for your LLM context. It is a local proxy that
+       flame-graphs every request's tokens, prices the call, and tells you what to cut. This
+       is what it shows and how it works.</p>
+    <div class="article-tags"><span>llm</span><span>observability</span><span>flame graphs</span><span>cost</span><span>tokens</span></div>
+
+    <div class="prose">
+
+      <p>An agent call that should be simple arrives at the model carrying twenty thousand
+         tokens of context. Some of it is the system prompt. A lot of it is tool schemas, most
+         of which this particular call never uses. The rest is conversation history that has
+         been quietly accreting since turn one, including the same file pasted three times.
+         You pay for all of it, on every single turn, and you have almost no idea how it splits.</p>
+
+      <p>We would never accept this for CPU. If a service were slow you would pull a profile and
+         see exactly which function burned the cycles. But for the context window - the thing you
+         pay per token for, on every request, forever - the best most teams have is the provider's
+         billing page. That is not a profiler. It is a meter.</p>
+
+      <h2><span class="h2-no">01</span> A bill is not a profile</h2>
+
+      <p>Your provider dashboard tells you that you spent $4,000 last month and that it trended
+         up. It will not tell you that 38% of every request is tool schemas, that a quarter of
+         those schemas are for tools the model never calls, or that your retrieval step keeps
+         pasting the same document into context turn after turn. Those are the facts that change
+         what you build, and a meter cannot surface a single one of them.</p>
+
+      <p>The unit that matters is not "dollars this month." It is "tokens in <em>this</em> request,
+         broken down by what put them there." Get that and the optimization work stops being
+         guesswork. That breakdown has an obvious shape, and the shape is a flame graph.</p>
+
+      <h2><span class="h2-no">02</span> The context flame graph</h2>
+
+      <p>Take one request's context window and treat it like a sampled profile, except the
+         resource is tokens, not CPU samples. The root is the whole window. Each child is a
+         category - system prompt, tool schemas, history, the user's message - and a frame's
+         <strong>width is the share of tokens it owns</strong>. Tool schemas split into individual
+         tools; history splits into tool results and prior turns. Wide frames are where your
+         tokens, and therefore your dollars, actually go.</p>
+
+      <p>Here is a real-shaped one from a coding agent. Scan for the widest frames, then look for
+         the ones you would not have guessed. Hover any frame for its token count and share; click
+         to zoom into its subtree; reset to zoom back out.</p>
+
+      <figure class="widget" data-widget="flamegraph" data-fg-unit="context" data-fg-noun="tokens">
+        <div class="widget-head">
+          <h3>Context flame graph - one agent turn</h3>
+          <span class="widget-readout" data-fg-readout>hover a frame · click to zoom</span>
+        </div>
+        <svg data-fg-svg viewBox="0 0 680 220" width="680" height="220" role="img" aria-label="Interactive token flame graph of one LLM request's context window"></svg>
+        <div class="widget-controls">
+          <button class="widget-btn" data-fg-reset>↺ reset zoom</button>
+        </div>
+        <script type="application/json" data-fg-tree>
+        {
+          "name": "context window", "value": 23800, "children": [
+            { "name": "system prompt", "value": 1800 },
+            { "name": "tool schemas", "value": 9200, "children": [
+              { "name": "browser (never called)", "value": 2300 },
+              { "name": "edit_file", "value": 1900 },
+              { "name": "bash", "value": 1500 },
+              { "name": "read_file", "value": 1300 },
+              { "name": "search", "value": 1200 },
+              { "name": "grep", "value": 1000 }
+            ] },
+            { "name": "history", "value": 10800, "children": [
+              { "name": "tool results", "value": 6400, "children": [
+                { "name": "same file, pasted 3x", "value": 3800 }
+              ] },
+              { "name": "assistant turns", "value": 2900 },
+              { "name": "user turns", "value": 1500 }
+            ] },
+            { "name": "user message", "value": 2000 }
+          ]
+        }
+        </script>
+      </figure>
+
+      <p>The user's actual question is the sliver on the right. The two widest things in the
+         window are tool schemas and history - and inside them are the findings: a
+         <code>browser</code> tool definition worth 2,300 tokens that this agent never calls, and
+         a file that retrieval pasted into context three separate times. Neither is visible on a
+         bill. Both are obvious here in seconds.</p>
+
+      <h2><span class="h2-no">03</span> From breakdown to reclaimable dollars</h2>
+
+      <p>A breakdown is interesting; a number you can act on is useful. So on top of the attribution
+         llmprof runs a waste detector that looks for three things it can price: <strong>duplicated
+         content</strong> (the same chunk repeated across the window or across turns), <strong>tool
+         schemas that are never called</strong>, and <strong>stable prefixes that are not being
+         cached</strong> when the provider would happily cache them. It rolls those into a single
+         "reclaimable per month" figure, projected from your actual traffic, with cache advice that
+         is aware of each provider's caching model.</p>
+
+      <div class="callout">
+        <p><strong>The throughline:</strong> attribute every token to what put it there, price it
+           against the real per-model rates, then point at the specific tokens you are paying for
+           and not using. The flame graph makes it legible; the waste detector makes it a dollar
+           figure.</p>
+      </div>
+
+      <h2><span class="h2-no">04</span> How it works, and why it stays local</h2>
+
+      <p>The mechanism is deliberately boring: llmprof is a proxy that speaks the OpenAI and
+         Anthropic wire formats. You point your client's base URL at <code>localhost:4000</code>
+         and your API key passes straight through to the real provider. The request is forwarded
+         unchanged and the response streams straight back; the tokenizing, attribution, pricing,
+         and waste detection all happen <em>off</em> the hot path, so it adds essentially no
+         latency to the call.</p>
+
+      <p>Two design choices matter. First, <strong>it is local by default</strong>: prompts,
+         completions, and keys only ever go to the upstream provider you already use. Traces land
+         in a SQLite file you own. Nothing is sent to me, to a cloud, or to any third party, which
+         is what makes it safe to run against production traffic. Second, <strong>pricing is
+         offline</strong>: a snapshot of rates for 1,000+ models ships inside the package, with
+         curated rates for the newest flagships, so cost is correct even with no network and you
+         are never one upstream outage away from a broken profiler.</p>
+
+      <h2><span class="h2-no">05</span> The payoff</h2>
+
+      <div class="lead-stat">
+        <div><dt>1,000+</dt><dd>models priced, offline</dd></div>
+        <div><dt>~0</dt><dd>added latency, off the hot path</dd></div>
+        <div><dt>100%</dt><dd>local; prompts never leave</dd></div>
+      </div>
+
+      <p>One base-URL change and the context window stops being a black box. You see which prompt
+         template drives the bill, watch history balloon turn over turn across an agent run, and get
+         a concrete list of tokens to cut. "Our LLM costs are creeping up" stops being a vague worry
+         and becomes a flame graph with the expensive frames highlighted.</p>
+
+      <p>llmprof is open source (MIT) and out now. Profile your own context in about a minute:</p>
+
+      <pre><code>pipx install llmprof &amp;&amp; llmprof up      <span class="cm"># or, no Python:  npx llmprof up</span></code></pre>
+
+      <p>Point a client at the proxy, open <code>localhost:4000</code>, and look at where your
+         tokens went. Code and docs:
+         <a class="accent" href="https://github.com/luthraG/llmprof">github.com/luthraG/llmprof</a>
+         · <a class="accent" href="https://luthrag.github.io/llmprof">documentation</a>
+         · <a class="accent" href="https://pypi.org/project/llmprof/">PyPI</a>.</p>
+
+      <div class="article-foot">
+        <p>Building AI infrastructure or LLM tooling and want a second pair of hands?
+           <a class="accent" href="mailto:luthra.zenith@gmail.com">luthra.zenith@gmail.com</a></p>
+        <a class="article-back" href="./">← all writing</a>
+      </div>
+
+    </div>
+  </article>
+</main>
+
+<script src="../js/rough.js"></script>
+<script src="../js/diagrams.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>
