@@ -2,7 +2,7 @@ name: Refresh GitHub stats
 
 on:
   schedule:
-    - cron: "30 4 * * 2" # Tuesdays 04:30 UTC (10:00 AM IST)
+    - cron: "37 4 * * 2" # Tuesdays 04:37 UTC (10:07 AM IST); off the :30 peak so GitHub is less likely to drop it
   workflow_dispatch:
 
 permissions:
