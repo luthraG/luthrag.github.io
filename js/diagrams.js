@@ -360,16 +360,26 @@
           g.appendChild(t);
         }
         const pct = ((node.value / TOTAL) * 100).toFixed(1);
-        g.addEventListener("mouseenter", () => {
+        g.setAttribute("tabindex", "0");
+        g.setAttribute("role", "button");
+        g.setAttribute("aria-label", `${node.name}, ${pct}% of ${unit}, ${node.value.toLocaleString()} ${noun} - press Enter to zoom`);
+        const showInfo = () => {
           rect.setAttribute("stroke", "#e7f4ee");
           rect.setAttribute("stroke-width", "1.5");
           readout.innerHTML = `<b>${node.name}</b> · ${node.value.toLocaleString()} ${noun} · ${pct}% of ${unit}`;
-        });
-        g.addEventListener("mouseleave", () => {
+        };
+        const hideInfo = () => {
           rect.removeAttribute("stroke");
           readout.textContent = "hover a frame · click to zoom";
-        });
+        };
+        g.addEventListener("mouseenter", showInfo);
+        g.addEventListener("mouseleave", hideInfo);
+        g.addEventListener("focus", showInfo);
+        g.addEventListener("blur", hideInfo);
         g.addEventListener("click", () => { focus = node; render(); });
+        g.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); focus = node; render(); }
+        });
         svg.appendChild(g);
 
         let cx = x;

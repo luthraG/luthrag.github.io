@@ -44,6 +44,13 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 .accent { color: var(--accent); }
 
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 200;
+  background: var(--accent); color: #042216; padding: 10px 16px;
+  font-family: var(--font-mono); font-size: 13px; border-radius: 0 0 6px 0;
+}
+.skip-link:focus { left: 0; }
+
 /* ---------- atmospheric background ---------- */
 .bg-grid {
   position: fixed; inset: 0; z-index: -2; pointer-events: none;

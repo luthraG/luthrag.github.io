@@ -63,7 +63,12 @@
   function setActive(id) {
     if (id === activeId) return;
     activeId = id;
-    spyLinks.forEach((a) => a.classList.toggle("active", a.hash === "#" + id));
+    spyLinks.forEach((a) => {
+      const on = a.hash === "#" + id;
+      a.classList.toggle("active", on);
+      if (on) a.setAttribute("aria-current", "true");
+      else a.removeAttribute("aria-current");
+    });
     // reflect the current section in the URL without adding history or jumping
     if (id) history.replaceState(null, "", "#" + id);
     else history.replaceState(null, "", location.pathname + location.search);
