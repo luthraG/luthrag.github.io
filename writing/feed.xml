@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>Gaurav Luthra - Writing</title>
+  <link>https://luthrag.github.io/writing/</link>
+  <description>Deep dives on distributed systems, observability, performance and data platforms.</description>
+  <language>en-us</language>
+  <atom:link href="https://luthrag.github.io/writing/feed.xml" rel="self" type="application/rss+xml"/>
+  <lastBuildDate>Fri, 19 Jun 2026 00:00:00 +0000</lastBuildDate>
+  <item>
+    <title>The Hard Part of Sampling Is the Zero</title>
+    <link>https://luthrag.github.io/writing/the-hard-part-of-sampling-is-the-zero.html</link>
+    <guid isPermaLink="true">https://luthrag.github.io/writing/the-hard-part-of-sampling-is-the-zero.html</guid>
+    <pubDate>Fri, 19 Jun 2026 00:00:00 +0000</pubDate>
+    <description>You can answer a huge aggregate query by reading a sliver of the data and multiplying back. The multiply is the easy part. The hard part is never reporting a confident zero when your sliver missed everything - measure the matches, widen once, then fail closed.</description>
+    <category>sampling</category>
+    <category>approximate queries</category>
+    <category>observability</category>
+    <category>statistics</category>
+  </item>
+  <item>
+    <title>Where Your LLM Tokens Actually Go</title>
+    <link>https://luthrag.github.io/writing/where-your-llm-tokens-go.html</link>
+    <guid isPermaLink="true">https://luthrag.github.io/writing/where-your-llm-tokens-go.html</guid>
+    <pubDate>Mon, 15 Jun 2026 00:00:00 +0000</pubDate>
+    <description>You profile CPU and memory. The context window is the most expensive resource in an AI app and almost nobody profiles it. How llmprof flame-graphs every request's tokens, prices the call offline for 1000+ models, and finds the dollars you can reclaim - all locally.</description>
+    <category>llm</category>
+    <category>observability</category>
+    <category>flame graphs</category>
+    <category>cost</category>
+    <category>tokens</category>
+  </item>
+  <item>
+    <title>Continuous Profiling: Finding Where the CPU Actually Goes</title>
+    <link>https://luthrag.github.io/writing/continuous-profiling.html</link>
+    <guid isPermaLink="true">https://luthrag.github.io/writing/continuous-profiling.html</guid>
+    <pubDate>Sun, 14 Jun 2026 00:00:00 +0000</pubDate>
+    <description>Metrics say a service is slow; profiling says which function. How always-on sampling profilers work, how to read a flame graph, and what it takes to ingest every runtime into one model.</description>
+    <category>profiling</category>
+    <category>observability</category>
+    <category>flame graphs</category>
+    <category>performance</category>
+  </item>
+  <item>
+    <title>Anomaly Detection for Alerting, at Nanosecond Cost</title>
+    <link>https://luthrag.github.io/writing/anomaly-detection-at-nanosecond-cost.html</link>
+    <guid isPermaLink="true">https://luthrag.github.io/writing/anomaly-detection-at-nanosecond-cost.html</guid>
+    <pubDate>Sun, 14 Jun 2026 00:00:00 +0000</pubDate>
+    <description>How to take metric anomaly detection from 200ms per evaluation to 8.5 nanoseconds and 100k+ timeseries, by moving every expensive thing out of the hot path.</description>
+    <category>observability</category>
+    <category>time series</category>
+    <category>performance</category>
+    <category>statistics</category>
+  </item>
+</channel>
+</rss>
