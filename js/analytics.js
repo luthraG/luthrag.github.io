@@ -4,7 +4,7 @@
    Until then this is a no-op and makes zero network requests. */
 (function () {
   "use strict";
-  var CODE = "YOURCODE"; // <-- replace with your GoatCounter code to turn analytics on
+  var CODE = "luthrag"; // GoatCounter site code
   if (!CODE || CODE === "YOURCODE") return;
   if (location.hostname === "localhost" || location.hostname === "127.0.0.1") return;
   var s = document.createElement("script");
