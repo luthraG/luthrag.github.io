@@ -384,6 +384,173 @@
     render();
   }
 
+  /* ============ Diagram: read a slice, scale it up ============ */
+  function diagramSliceScale(host) {
+    const W = 680, H = 232;
+    const svg = svgRoot(host, W, H);
+    const rc = rough.svg(svg);
+    const sliceX = 168, sliceW = 150;
+
+    // the full range
+    svg.appendChild(rc.rectangle(40, 38, 600, 60, { stroke: C.line, strokeWidth: 1.4, roughness: 1.3 }));
+    text(svg, 340, 116, "the whole range - 30 days", { fill: C.faint, size: 11 });
+
+    // events: faint across the range, lit inside the slice
+    for (let i = 0; i < 60; i++) {
+      const x = 52 + (i / 59) * 576, y = 50 + (i % 5) * 10;
+      const inside = x >= sliceX && x <= sliceX + sliceW;
+      svg.appendChild(mk("circle", { cx: x, cy: y, r: 2.4, fill: inside ? C.accent : C.faint, "fill-opacity": inside ? 1 : 0.5 }));
+    }
+
+    // the sampled slice
+    svg.appendChild(rc.rectangle(sliceX, 31, sliceW, 74, {
+      stroke: C.accent, strokeWidth: 1.6, roughness: 1.1, fill: C.accent,
+      fillStyle: "hachure", fillWeight: 0.6, hachureGap: 7, hachureAngle: 41,
+    }));
+    text(svg, sliceX + sliceW / 2, 24, "read 1/4", { fill: C.accent, size: 12 });
+
+    // pipeline: counted -> x4 -> estimate
+    const cx = sliceX + sliceW / 2;
+    svg.appendChild(rc.line(cx, 106, cx, 150, { stroke: C.faint, strokeWidth: 1.2, roughness: 1.6 }));
+    arrow(svg, cx, 120, cx, 151, C.faint);
+
+    svg.appendChild(rc.rectangle(150, 152, 150, 54, { stroke: C.line, strokeWidth: 1.3, roughness: 1.1 }));
+    text(svg, 225, 176, "1,800", { fill: C.text, size: 19 });
+    text(svg, 225, 194, "counted in slice", { fill: C.muted, size: 10 });
+
+    svg.appendChild(rc.line(304, 179, 384, 179, { stroke: C.faint, strokeWidth: 1.2, roughness: 1.4 }));
+    arrow(svg, 304, 179, 386, 179, C.faint);
+    text(svg, 344, 171, "× 4", { fill: C.amber, size: 14 });
+
+    svg.appendChild(rc.rectangle(390, 152, 150, 54, { stroke: C.accent, strokeWidth: 1.4, roughness: 1.1 }));
+    text(svg, 465, 176, "7,200", { fill: C.text, size: 19 });
+    text(svg, 465, 194, "estimate", { fill: C.muted, size: 10 });
+  }
+
+  /* ============ Diagram: the honesty / safety chain ============ */
+  function diagramHonestyChain(host) {
+    const W = 680, H = 272;
+    const svg = svgRoot(host, W, H);
+    const rc = rough.svg(svg);
+    const RED = "#e5534b";
+
+    const box = (x, y, w, hh, l1, l2, color) => {
+      svg.appendChild(rc.rectangle(x, y, w, hh, { stroke: color, strokeWidth: 1.5, roughness: 1.05 }));
+      if (l2) {
+        text(svg, x + w / 2, y + hh / 2 - 2, l1, { fill: C.text, size: 12 });
+        text(svg, x + w / 2, y + hh / 2 + 14, l2, { fill: C.muted, size: 10.5 });
+      } else {
+        text(svg, x + w / 2, y + hh / 2 + 4, l1, { fill: color, size: 12 });
+      }
+    };
+    const diamond = (dcx, dcy, half, label, color) => {
+      const hw = half * 1.3;
+      svg.appendChild(rc.polygon([[dcx, dcy - half], [dcx + hw, dcy], [dcx, dcy + half], [dcx - hw, dcy]],
+        { stroke: color, strokeWidth: 1.5, roughness: 0.9 }));
+      text(svg, dcx, dcy + 4, label, { fill: color, size: 11 });
+    };
+    const link = (x1, y1, x2, y2, label, color, lx, ly) => {
+      svg.appendChild(rc.line(x1, y1, x2, y2, { stroke: C.faint, strokeWidth: 1.2, roughness: 1.3 }));
+      arrow(svg, x1, y1, x2, y2, C.faint);
+      if (label) text(svg, lx, ly, label, { fill: color || C.muted, size: 10.5 });
+    };
+
+    // top row: sample -> count -> enough? -> return
+    box(20, 44, 104, 50, "sample", "window", C.line);
+    box(156, 44, 128, 50, "count", "matched rows", C.line);
+    diamond(372, 69, 30, "enough?", C.muted);
+    box(486, 44, 170, 50, "scale & return", "estimate", C.accent);
+    link(124, 69, 154, 69, "", null);
+    link(284, 69, 331, 69, "", null);
+    link(411, 69, 484, 69, "yes", C.accent, 448, 60);
+
+    // down: widen once -> enough now?
+    link(372, 99, 372, 148, "no", C.muted, 384, 126);
+    box(312, 150, 120, 48, "widen once", "2× wider", C.amber);
+    diamond(498, 174, 30, "enough?", C.muted);
+    link(432, 174, 457, 174, "", null);
+    link(537, 174, 554, 174, "yes", C.amber, 545, 166);
+    box(556, 150, 104, 48, "return", "(widened)", C.amber);
+
+    // down again: refuse
+    link(498, 204, 498, 226, "no", C.muted, 510, 218);
+    svg.appendChild(rc.rectangle(300, 228, 300, 34, { stroke: RED, strokeWidth: 1.6, roughness: 1.05, fill: RED, fillStyle: "hachure", fillWeight: 0.5, hachureGap: 9 }));
+    text(svg, 450, 249, "refuse  -  never a confident 0", { fill: RED, size: 12.5 });
+  }
+
+  /* ============ Interactive widget: the sampler ============ */
+  function widgetSampler(root) {
+    const svg = root.querySelector("[data-samp-svg]");
+    const readout = root.querySelector("[data-samp-readout]");
+    const posInput = root.querySelector("[data-samp-pos]");
+    const posVal = root.querySelector("[data-samp-posv]");
+    const widenBtn = root.querySelector("[data-samp-widen]");
+    const shapeWrap = root.querySelector("[data-samp-shape]");
+    const W = 680, H = 196, x0 = 18, x1 = W - 18, top = 32, stripH = 92;
+    const stripW = x1 - x0;
+    const BASE_FRAC = 0.16, THRESHOLD = 6, RED = "#e5534b";
+
+    const seed = (n) => { const x = Math.sin(n * 99.97) * 43758.5; return x - Math.floor(x); };
+    function buildPoints(shape) {
+      const p = [];
+      if (shape === "steady") {
+        for (let i = 0; i < 132; i++) p.push((i + 0.5) / 132 + (seed(i) - 0.5) * 0.004);
+      } else if (shape === "bursty") {
+        [0.16, 0.5, 0.82].forEach((c, k) => { for (let i = 0; i < 34; i++) p.push(c + (seed(i + k * 17) - 0.5) * 0.06); });
+      } else {
+        for (let i = 0; i < 13; i++) p.push(seed(i * 1.7 + 3));
+      }
+      return p.filter((v) => v >= 0 && v <= 1).sort((a, b) => a - b);
+    }
+
+    let shape = "steady", pts = buildPoints(shape), widened = false, frac = BASE_FRAC;
+
+    function draw() {
+      const total = pts.length;
+      const pos = (+posInput.value) / 100 * (1 - frac);
+      const wx = x0 + pos * stripW, ww = frac * stripW;
+      let matches = 0;
+      for (const v of pts) if (v >= pos && v <= pos + frac) matches++;
+
+      svg.innerHTML = "";
+      svg.appendChild(mk("rect", { x: x0, y: top, width: stripW, height: stripH, rx: 10, fill: "#0b121a", stroke: C.line }));
+      svg.appendChild(mk("rect", { x: wx, y: top - 8, width: ww, height: stripH + 16, rx: 8, fill: "rgba(240,180,41,0.13)", stroke: C.amber, "stroke-width": 1.4 }));
+      text(svg, wx + ww / 2, top - 13, "sample window", { fill: C.amber, size: 10.5 });
+
+      for (let i = 0; i < pts.length; i++) {
+        const v = pts[i], cx = x0 + v * stripW, cy = top + 15 + seed(v * 900 + i) * (stripH - 30);
+        const inWin = v >= pos && v <= pos + frac;
+        svg.appendChild(mk("circle", { cx, cy, r: inWin ? 3.6 : 2.6, fill: RED, "fill-opacity": inWin ? 1 : 0.38 }));
+      }
+      text(svg, x0, top + stripH + 18, "30 days ago", { fill: C.faint, size: 10, anchor: "start" });
+      text(svg, x1, top + stripH + 18, "now", { fill: C.faint, size: 10, anchor: "end" });
+
+      const estimate = Math.round(matches / frac);
+      posVal.textContent = Math.round(+posInput.value) + "%";
+      let msg;
+      if (matches >= THRESHOLD) {
+        msg = `matched <b>${matches}</b> rows · estimate <b>${estimate.toLocaleString()}</b> · true total ${total}` +
+          (widened ? " · <span style='color:#f0b429'>widened</span>" : "");
+      } else if (!widened) {
+        msg = `only <b>${matches}</b> matched (need ${THRESHOLD}) - estimate <b>${estimate.toLocaleString()}</b> is a guess. Widen once?`;
+      } else {
+        msg = `still only <b>${matches}</b> matched after widening - <span style='color:${RED}'>REFUSE</span>` +
+          (matches === 0 ? " · a scaled-up 0 would be a confident lie" : "");
+      }
+      readout.innerHTML = msg;
+    }
+
+    posInput.addEventListener("input", () => { widened = false; frac = BASE_FRAC; draw(); });
+    widenBtn.addEventListener("click", () => { if (!widened) { widened = true; frac = Math.min(BASE_FRAC * 2, 1); } draw(); });
+    shapeWrap.addEventListener("click", (e) => {
+      const b = e.target.closest("button"); if (!b) return;
+      [...shapeWrap.children].forEach((c) => c.classList.remove("on"));
+      b.classList.add("on");
+      shape = b.dataset.shape; pts = buildPoints(shape); widened = false; frac = BASE_FRAC; draw();
+    });
+    draw();
+  }
+
   /* ---------- dispatch ---------- */
   function init() {
     if (typeof rough === "undefined") return;
@@ -393,9 +560,12 @@
       else if (kind === "seasonal") diagramSeasonal(host);
       else if (kind === "sampling") diagramSampling(host);
       else if (kind === "runtimes") diagramRuntimes(host);
+      else if (kind === "slice-scale") diagramSliceScale(host);
+      else if (kind === "honesty-chain") diagramHonestyChain(host);
     });
     document.querySelectorAll("[data-widget='anomaly-band']").forEach(widgetAnomalyBand);
     document.querySelectorAll("[data-widget='flamegraph']").forEach(widgetFlamegraph);
+    document.querySelectorAll("[data-widget='sampler']").forEach(widgetSampler);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Hard Part of Sampling Is the Zero - Gaurav Luthra</title>
+<meta name="description" content="You can answer a huge aggregate query by reading a sliver of the data and multiplying back. The multiply is the easy part. The hard part is never reporting a confident zero when your sliver missed everything: measure the matches, widen once, then fail closed.">
+<meta property="og:title" content="The Hard Part of Sampling Is the Zero">
+<meta property="og:description" content="Approximate analytics: read a fraction of the data, scale it back, answer long-range queries cheaply. The trick is trivial - the engineering is refusing to lie when the sample is empty.">
+<meta property="og:image" content="https://luthrag.github.io/assets/gaurav.webp">
+<meta property="og:url" content="https://luthrag.github.io/writing/the-hard-part-of-sampling-is-the-zero.html">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Hard Part of Sampling Is the Zero">
+<meta name="twitter:description" content="Read a sliver of the data, multiply back, answer a long-range query cheaply. The multiply is trivial - the engineering is never reporting a confident zero.">
+<meta name="twitter:image" content="https://luthrag.github.io/assets/gaurav.webp">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Spline+Sans+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/writing.css">
+</head>
+<body>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow bg-glow-1" aria-hidden="true"></div>
+
+<header class="nav">
+  <a class="nav-logo" href="../">gl<span class="accent">@</span>luthra<span class="cursor-blink">_</span></a>
+  <nav class="nav-links">
+    <a href="../#experience">experience</a>
+    <a href="../#work">work</a>
+    <a href="./" class="active">writing</a>
+    <a href="../#consulting">consulting</a>
+    <a href="../#honors">honors</a>
+    <a href="../#contact" class="nav-cta">contact</a>
+  </nav>
+  <button class="nav-burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+</header>
+
+<main class="article-wrap">
+  <article class="article">
+    <p class="crumb"><a href="../">home</a><span>/</span><a href="./">writing</a></p>
+    <p class="article-meta">June 2026 · <span class="accent">~7 min read</span> · approximate queries</p>
+    <h1>The Hard Part of Sampling Is the Zero</h1>
+    <p class="article-dek">You can answer "how many errors in the last 30 days?" by reading a
+       sliver of the data and multiplying back, for a fraction of the cost. The multiply is
+       the easy part. The engineering is refusing to report a confident <strong>zero</strong>
+       when your sliver happened to miss everything.</p>
+    <div class="article-tags"><span>sampling</span><span>approximate queries</span><span>observability</span><span>statistics</span></div>
+
+    <div class="prose">
+
+      <p>Some questions are cheap to ask and ruinous to answer. "How many checkout failures
+         in the last 30 days?" is one number - but the obvious way to get it reads every log
+         line in those 30 days, tens of millions of rows, to hand back a single integer. You
+         pay full price for the whole haystack to count a few needles.</p>
+
+      <p>There is a much cheaper way, and it is old. Do not read the whole month. Read a slice
+         of it, count what is there, and scale up.</p>
+
+      <h2><span class="h2-no">01</span> A spoonful of soup</h2>
+
+      <p>You have a giant pot of soup and you want to know how salty it is. You do not drink
+         the pot. You stir, taste one spoonful, and judge the whole pot from it. Sampling a
+         query is the same move: read one window of time instead of the whole range, count the
+         matches in it, and multiply by the inverse of the fraction you read. Read a quarter of
+         the month, see 1,800 errors, estimate <strong>1,800 &times; 4 = 7,200</strong> for the
+         month.</p>
+
+      <figure class="diagram" data-diagram="slice-scale">
+        <figcaption>Read one sub-window, count the matches inside it, and multiply by 1 / the fraction read. The textbook name is the Horvitz-Thompson estimator; in plain words, "I looked at a quarter, so I multiply by four."</figcaption>
+      </figure>
+
+      <p>That multiplier - <strong>one divided by the fraction you read</strong> - is the whole
+         trick. It is provably unbiased for totals: on average, counted &divide; fraction lands
+         on the true total no matter how the data is shaped. This only works for quantities you
+         can legally add back up - <code>count</code> and <code>sum</code>. An average or a 95th
+         percentile cannot be recovered by multiplying a slice, and the number of distinct users
+         is hopeless this way, so we never sample those. For the totals, though, the arithmetic
+         is a one-liner.</p>
+
+      <h2><span class="h2-no">02</span> The multiply is the easy part</h2>
+
+      <p>If the estimator is unbiased, where is the catch? In the word "average." Unbiased means
+         it is right <em>on average over many random slices</em>. Any single slice you actually
+         run can be off - and how far off depends entirely on the shape of the data you filtered
+         down to.</p>
+
+      <p>For common, steady things - all requests, all 200s - every slice looks like every other,
+         so the estimate is tight. The danger is the <strong>rare filter</strong>. Ask for "500s
+         from one app build in one region," maybe 40 events scattered across a month, and your
+         slice almost certainly contains none of them. Multiply zero by four and you get zero.
+         The errors are real. Your window just missed them, and you reported their absence with
+         total confidence.</p>
+
+      <div class="callout">
+        <p><strong>This is the failure that matters:</strong> not a number that is 8% high, but a
+           confident <strong>0</strong> that is wholly wrong. A noisy estimate, a user can
+           distrust. A clean zero reads as "nothing happened" - and silence is the one answer an
+           alerting or analytics system must never fake.</p>
+      </div>
+
+      <h2><span class="h2-no">03</span> See it break</h2>
+
+      <p>Below is the estimator running on a month of synthetic events. Pick a data shape, then
+         drag the sample window across the range. Watch the estimate track the truth on steady
+         data, swing on bursty data, and collapse to a confident zero on a rare filter. When it
+         lands empty, hit <em>widen once</em> and see whether a bigger look rescues it.</p>
+
+      <figure class="widget" data-widget="sampler">
+        <div class="widget-head">
+          <h3>Sampling a month - drag the window, change the shape</h3>
+          <span class="widget-readout" data-samp-readout>drag the window</span>
+        </div>
+        <svg data-samp-svg viewBox="0 0 680 196" width="680" height="196" role="img" aria-label="Interactive sample window dragged over a month of events"></svg>
+        <div class="widget-controls">
+          <div class="ctrl">
+            <label>window position <b data-samp-posv></b></label>
+            <input type="range" data-samp-pos min="0" max="100" step="1" value="38">
+          </div>
+          <span class="seg" data-samp-shape>
+            <button data-shape="steady" class="on">steady</button>
+            <button data-shape="bursty">bursty</button>
+            <button data-shape="rare">rare filter</button>
+          </span>
+          <button class="widget-btn" data-samp-widen>+ widen once (2&times;)</button>
+        </div>
+      </figure>
+
+      <p>On the rare filter most positions show the same thing: a window with nothing in it, an
+         estimate of zero, and a true total that is plainly not zero. That is the case the rest of
+         this article is about. Everything else - the math, the speed - is the easy 80%.</p>
+
+      <h2><span class="h2-no">04</span> Measure the matches, not the answer</h2>
+
+      <p>The first instinct is to guard on the result: "if the estimate is zero, do not trust it."
+         That is wrong, and the bug is subtle. A <code>sum</code> of refund amounts that genuinely
+         comes out to zero over a window full of non-refund traffic is a <em>correct</em> zero.
+         A <code>count</code> of errors that is legitimately zero because the service was healthy
+         is a <em>correct</em> zero. Flagging those is crying wolf.</p>
+
+      <p>The thing that tells a real zero from a dangerous one is not the value at all - it is
+         <strong>how many rows the window matched</strong>. A window that matched ten thousand
+         rows and summed to zero is solid. A window that matched almost no rows might have landed
+         in a gap, and any number it produces - including zero - is a guess. So the guard keys off
+         the <strong>matched-row count</strong>, never the output. Plenty of matches, any value:
+         trust it. Near-zero matches: be suspicious, whatever the value.</p>
+
+      <div class="callout">
+        <p><strong>The distinction in one line:</strong> a zero <em>answer</em> over many matched
+           rows is data. A zero answer over an empty window is the absence of data wearing the
+           same clothes. Guard on the matches, not the number.</p>
+      </div>
+
+      <h2><span class="h2-no">05</span> Widen once, then decide</h2>
+
+      <p>So the window matched too few rows. You have three options and two of them are traps.
+         Returning the thin estimate anyway is the confident-zero lie. Quietly falling back to
+         scanning the whole range is the other trap - it turns the fast approximate query you were
+         paid to deliver back into the slow exact one, silently, exactly when the data is awkward.
+         The honest move sits between them: look a little wider, <em>once</em>.</p>
+
+      <p>Double the window, recompute the scale factor from the new width so the arithmetic stays
+         correct, re-run, and re-check the matched-row count. One bounded step, not a loop. If the
+         wider window now has enough matches, return that estimate. If it still does not, stop
+         guessing and say so.</p>
+
+      <figure class="diagram" data-diagram="honesty-chain">
+        <figcaption>The safety chain. The decision keys off matched rows at every gate. A thin window widens exactly once; if it is still thin, the request refuses rather than emit a number nobody should trust.</figcaption>
+      </figure>
+
+      <p>Why one step and not "keep widening until it is dense enough"? Because that loop has a
+         name - it is a full scan with extra steps. The bounded widen says "give the estimate a
+         fair second chance," and the refusal says "past that, the data is too sparse for a cheap
+         answer, and pretending otherwise is the bug." A quick aside on the threshold: the accuracy
+         of a scaled count depends on the <em>absolute</em> number of matched rows, and its relative
+         error shrinks like <strong>1 / &radic;(matched rows)</strong> - so the floor is a count of
+         matches, not a fraction of the dataset. A bigger dataset does not need a bigger floor; it
+         just makes the floor easier to clear in a small slice.</p>
+
+      <h2><span class="h2-no">06</span> A flag you do not render is not a safety feature</h2>
+
+      <p>When the widened window is still too thin, the tempting design is to return the estimate
+         with a <code>lowConfidence: true</code> flag attached and let the caller decide. It feels
+         responsible. It is the most common way this ships, and it is mostly theater.</p>
+
+      <p>A flag only protects a user if something on the path actually renders it. Think about who
+         calls an analytics API: a dashboard that draws the number in 48px and never reads your
+         metadata. An alerting rule that compares the number to a threshold and pages or does not.
+         A nightly script that writes the number into a report. A spreadsheet pulling it over
+         HTTP. None of them look at <code>lowConfidence</code>. To every one of them, your
+         carefully flagged guess is just a number, and a flagged confident zero fires - or fails
+         to fire - an alert exactly as loudly as an unflagged one.</p>
+
+      <div class="callout">
+        <p><strong>The reusable lesson:</strong> when the safe behavior depends on the caller
+           reading a field, the default is unsafe. Design for the consumer who ignores your
+           metadata, because most of them do and silently. <strong>Fail closed:</strong> by
+           default, refuse the thin sample outright - return an explicit error, not a flagged
+           number. Only return the flagged estimate when something opts in and visibly renders the
+           warning. The flag becomes real the day a UI is built to show it; until then, the
+           rejection is the only honest answer.</p>
+      </div>
+
+      <p>This is not exotic. It is the discipline the systems that have lived with sampling longest
+         all converge on: report uncertainty and escalate rather than answer (BlinkDB), state
+         plainly that a restrictive filter can miss rare values "altogether" (Elasticsearch),
+         keep extrapolation opt-in and warn (New Relic). The shared rule underneath all of them is
+         the same: never let a thin sample wear the costume of a confident answer.</p>
+
+      <h2><span class="h2-no">07</span> The payoff</h2>
+
+      <div class="lead-stat">
+        <div><dt>~1 / &radic;k</dt><dd>error set by matched rows, not data size</dd></div>
+        <div><dt>widen &times;2, once</dt><dd>a bounded look, then a decision - never a loop</dd></div>
+        <div><dt>0</dt><dd>confident zeros shipped to a caller</dd></div>
+      </div>
+
+      <p>The cheap part of approximate analytics is the part everyone demos: read a quarter,
+         multiply by four, watch the query get fast. The part that decides whether you can put it
+         in front of real users is the unglamorous safety chain - measure the matches not the
+         value, widen once, and fail closed when the data is too sparse to answer cheaply. Get that
+         right and "our long-range queries are too expensive" stops being a tradeoff between speed
+         and trust. Get it wrong and you have built a system that is fast, cheap, and occasionally,
+         confidently, lying.</p>
+
+      <div class="article-foot">
+        <p>Building approximate query or observability infrastructure and want a second pair of hands?
+           <a class="accent" href="mailto:luthra.zenith@gmail.com">luthra.zenith@gmail.com</a></p>
+        <a class="article-back" href="./">← all writing</a>
+      </div>
+
+    </div>
+  </article>
+</main>
+
+<script src="../js/rough.js"></script>
+<script src="../js/diagrams.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>

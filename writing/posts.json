@@ -1,5 +1,15 @@
 [
   {
+    "title": "The Hard Part of Sampling Is the Zero",
+    "file": "the-hard-part-of-sampling-is-the-zero.html",
+    "date": "2026 · 06",
+    "year": "2026",
+    "topic": "approximate queries",
+    "blurb": "You can answer a huge aggregate query by reading a sliver of the data and multiplying back. The multiply is the easy part. The hard part is never reporting a confident zero when your sliver missed everything - measure the matches, widen once, then fail closed.",
+    "blurbHome": "You can answer a 30-day query by reading a sliver of the data and multiplying back, for a fraction of the cost. The multiply is trivial - the engineering is refusing to report a confident zero when the sample is empty. With hand-drawn diagrams and a sampler you can drag.",
+    "tags": ["sampling", "approximate queries", "observability", "statistics"]
+  },
+  {
     "title": "Where Your LLM Tokens Actually Go",
     "file": "where-your-llm-tokens-go.html",
     "date": "2026 · 06",
