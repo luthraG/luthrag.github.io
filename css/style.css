@@ -261,6 +261,16 @@ main { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
 .ticker:hover .ticker-track { animation-play-state: paused; }
 @keyframes ticker { to { transform: translateX(-50%); } }
 
+/* ---------- system map ---------- */
+.sysmap { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px 20px 14px; }
+.sysmap svg { display: block; width: 100%; height: auto; }
+.sysmap-readout {
+  font-family: var(--font-mono); font-size: 13px; line-height: 1.6; color: var(--muted);
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); min-height: 44px;
+}
+.sysmap-readout b { color: var(--accent); }
+@media (max-width: 720px) { .sysmap { overflow-x: auto; } .sysmap svg { min-width: 700px; } }
+
 /* ---------- stat tiles ---------- */
 .stat-tiles {
   display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 26px;
