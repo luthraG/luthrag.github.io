@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 - Page not found - Gaurav Luthra</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Spline+Sans+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .nf { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 120px 24px 80px; }
+  .nf .code {
+    font-family: var(--font-display); font-weight: 800; font-size: clamp(84px, 20vw, 180px); line-height: 0.9;
+    letter-spacing: -0.03em; background: linear-gradient(135deg, #ffffff 30%, #9fb3c2);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .nf h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 4vw, 32px); margin: 6px 0 0; }
+  .nf p { color: var(--muted); max-width: 440px; margin-top: 12px; }
+  .nf .term {
+    font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--muted);
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px 18px; margin: 26px 0 30px; text-align: left; max-width: 90vw; overflow-x: auto;
+  }
+  .nf .term .t-cmd { color: var(--amber); } .nf .term .t-err { color: #e5534b; }
+  .nf .actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+</style>
+</head>
+<body>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow bg-glow-1" aria-hidden="true"></div>
+
+<header class="nav">
+  <a class="nav-logo" href="/">gl<span class="accent">@</span>luthra<span class="cursor-blink">_</span></a>
+  <nav class="nav-links">
+    <a href="/#experience">experience</a>
+    <a href="/#work">work</a>
+    <a href="/writing/">writing</a>
+    <a href="/#activity">activity</a>
+    <a href="/#consulting">consulting</a>
+    <a href="/#honors">honors</a>
+    <a href="/#contact" class="nav-cta">contact</a>
+  </nav>
+  <button class="nav-burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+</header>
+
+<main class="nf">
+  <p class="eyebrow">// http 404</p>
+  <div class="code">404</div>
+  <h1>Page not found</h1>
+  <p>That URL does not resolve. It may have moved, or never existed.</p>
+  <div class="term"><span class="t-cmd">$ cat</span> <span id="reqpath">.</span><br><span class="t-err">cat: no such file or directory</span></div>
+  <div class="actions">
+    <a class="btn btn-primary" href="/">Back home</a>
+    <a class="btn" href="/writing/">Read the writing</a>
+  </div>
+</main>
+
+<script>
+  var el = document.getElementById("reqpath");
+  if (el) el.textContent = "." + location.pathname;
+</script>
+<script src="/js/main.js" defer></script>
+</body>
+</html>
