@@ -130,61 +130,6 @@
   );
   $$("[data-count]").forEach((el) => cio.observe(el));
 
-  /* ---------- hero terminal typing ---------- */
-  const termLines = [
-    ['t-cmd', '$ whoami --verbose'],
-    ['', ''],
-    ['t-key', 'founder   ', 't-str', '"Yuvanya Systems"'],
-    ['t-key', 'role      ', 't-str', '"Distinguished Engineer"'],
-    ['t-key', 'focus     ', 't-str', '"observability - anomaly detection, profiling, query lang"'],
-    ['t-key', 'stack     ', 't-str', '[py, go, node, k8s, es, llm]'],
-    ['t-key', 'uptime    ', 't-str', '15y+'],
-  ];
-  const termEl = document.getElementById("term-code");
-  if (termEl && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    let li = 0, ci = 0, html = "";
-    function lineText(parts) {
-      let out = "";
-      for (let i = 0; i < parts.length; i += 2) out += parts[i + 1];
-      return out;
-    }
-    function renderLine(parts, upTo) {
-      let out = "", used = 0;
-      for (let i = 0; i < parts.length; i += 2) {
-        const cls = parts[i], txt = parts[i + 1];
-        if (used >= upTo) break;
-        const take = txt.slice(0, upTo - used);
-        out += cls ? `<span class="${cls}">${take}</span>` : take;
-        used += take.length;
-      }
-      return out;
-    }
-    function type() {
-      if (li >= termLines.length) return;
-      const parts = termLines[li];
-      const full = lineText(parts);
-      ci++;
-      termEl.innerHTML = html + renderLine(parts, ci);
-      if (ci >= full.length) {
-        html += renderLine(parts, full.length) + "\n";
-        li++; ci = 0;
-        setTimeout(type, full ? 160 : 60);
-      } else {
-        setTimeout(type, 14 + Math.random() * 26);
-      }
-    }
-    setTimeout(type, 600);
-  } else if (termEl) {
-    termEl.innerHTML = termLines
-      .map((p) => {
-        let out = "";
-        for (let i = 0; i < p.length; i += 2)
-          out += p[i] ? `<span class="${p[i]}">${p[i + 1]}</span>` : p[i + 1];
-        return out;
-      })
-      .join("\n");
-  }
-
   /* ================= GitHub telemetry ================= */
   const NS = "http://www.w3.org/2000/svg";
   const svgEl = (tag, attrs) => {

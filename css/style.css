@@ -234,12 +234,30 @@ main { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
 .terminal-bar span { font-family: var(--font-mono); font-size: 11px; color: var(--faint); margin-left: 6px; }
 .terminal-body {
   font-family: var(--font-mono); font-size: 12px; line-height: 1.75;
-  padding: 14px 16px 16px; color: var(--muted);
-  white-space: pre-wrap; word-break: break-word; min-height: 178px;
+  padding: 14px 16px 16px; color: var(--muted); height: 184px;
+  overflow-y: auto; cursor: text;
+  scrollbar-width: none;
 }
+.term-row { white-space: pre-wrap; word-break: break-word; }
+.terminal-body::-webkit-scrollbar { width: 0; height: 0; }
 .terminal-body .t-key { color: var(--accent); }
 .terminal-body .t-str { color: #d8e3ec; }
 .terminal-body .t-cmd { color: var(--amber); }
+.terminal-body .t-faint { color: var(--faint); }
+.terminal-body .t-err { color: #e5534b; }
+.term-line { display: flex; align-items: baseline; gap: 7px; }
+.t-prompt { color: var(--accent); }
+.term-input {
+  flex: 1; min-width: 0; background: none; border: 0; outline: none; padding: 0;
+  color: var(--text); font: inherit; caret-color: var(--accent);
+}
+.term-input::placeholder { color: var(--faint); }
+.term-sug {
+  font-family: var(--font-mono); font-size: 11px; color: var(--faint); margin-top: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.term-opt { color: var(--muted); margin-right: 14px; cursor: pointer; }
+.term-opt:hover { color: var(--accent); }
 .term-caret {
   display: inline-block; width: 7px; height: 13px; background: var(--accent);
   vertical-align: -2px; animation: blink 1s steps(1) infinite;

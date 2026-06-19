@@ -93,9 +93,12 @@
         <img src="assets/gaurav.webp" alt="Gaurav Luthra" width="640" height="640" fetchpriority="high">
         <div class="portrait-frame" aria-hidden="true"></div>
       </div>
-      <div class="terminal reveal" aria-hidden="true">
-        <div class="terminal-bar"><i></i><i></i><i></i><span>gaurav@zenith ~ %</span></div>
-        <pre class="terminal-body"><code id="term-code"></code><span class="term-caret"></span></pre>
+      <div class="terminal reveal">
+        <div class="terminal-bar"><i></i><i></i><i></i><span>gaurav@yuvanya ~ %</span></div>
+        <div class="terminal-body" data-term>
+          <div class="term-out" data-term-out></div>
+          <div class="term-line"><span class="t-prompt">$</span><input class="term-input" data-term-input type="text" placeholder="type 'help'" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Interactive terminal - type help and press Enter"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -415,6 +418,7 @@
 <script src="js/main.js" defer></script>
 <script src="js/grid-fx.js" defer></script>
 <script src="js/hero-name.js" defer></script>
+<script src="js/terminal.js" defer></script>
 <script src="js/rough.js" defer></script>
 <script src="js/system.js" defer></script>
 <script src="js/analytics.js" defer></script>
